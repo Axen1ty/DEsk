@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=DEsk: Memory sticks and disks
+Name[ja]=DEsk: メモリスティックとディスク
+Comment=Mounted when put in, with a letter
+Exec=desk-session-helper media
+TryExec=desk-session-helper
+OnlyShowIn=DEsk;
+NoDisplay=true
+X-GNOME-Autostart-enabled=true

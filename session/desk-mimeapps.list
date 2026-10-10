@@ -1,0 +1,80 @@
+# DEsk's standard programs: the default program for each kind of file in
+# a DEsk session (XDG_CURRENT_DESKTOP=DEsk), and what the drawer's four
+# things open -- the terminal, the browser (x-scheme-handler/https), the
+# file manager (inode/directory) and the text editor (text/plain).
+#
+# A list for each: the first one installed is used. It is looked for after
+# your own choices, in the freedesktop order: ~/.config/desk-mimeapps.list
+# (in DEsk only), then ~/.config/mimeapps.list -- which Shell Settings'
+# Default programs (xfce4-mime-settings) and other desktops write -- and the
+# same two in the system's folders. shell.conf can also name the drawer's
+# things (app.editor = pluma.desktop, and so on).
+#
+# The set is the classic GTK programs of Xfce and MATE: a menu bar, plain
+# tools and the document, the kind of window the desk's paper is cut for,
+# and small enough for a slow machine. KDE's programs come after them, and
+# GNOME's, whose header bars are a frame of their own, after those. Caja
+# goes by the entry it gives for folders (caja-folder-handler): its plain
+# one would make it MATE's desktop as well, icons over the background.
+# The ones named <name>_<name> are Ubuntu's snaps.
+
+[Default Applications]
+text/plain=org.xfce.mousepad.desktop;mousepad.desktop;pluma.desktop;featherpad.desktop;org.kde.kwrite.desktop;org.kde.kate.desktop;org.gnome.gedit.desktop;org.gnome.TextEditor.desktop;
+text/markdown=org.xfce.mousepad.desktop;mousepad.desktop;pluma.desktop;featherpad.desktop;org.kde.kwrite.desktop;org.kde.kate.desktop;org.gnome.gedit.desktop;org.gnome.TextEditor.desktop;
+inode/directory=thunar.desktop;caja-folder-handler.desktop;pcmanfm.desktop;nemo.desktop;pcmanfm-qt.desktop;org.kde.dolphin.desktop;org.gnome.Nautilus.desktop;
+x-scheme-handler/http=firefox-esr.desktop;firefox.desktop;org.mozilla.firefox.desktop;firefox_firefox.desktop;chromium.desktop;chromium_chromium.desktop;org.kde.falkon.desktop;
+x-scheme-handler/https=firefox-esr.desktop;firefox.desktop;org.mozilla.firefox.desktop;firefox_firefox.desktop;chromium.desktop;chromium_chromium.desktop;org.kde.falkon.desktop;
+text/html=firefox-esr.desktop;firefox.desktop;org.mozilla.firefox.desktop;firefox_firefox.desktop;chromium.desktop;chromium_chromium.desktop;org.kde.falkon.desktop;
+application/xhtml+xml=firefox-esr.desktop;firefox.desktop;org.mozilla.firefox.desktop;firefox_firefox.desktop;chromium.desktop;chromium_chromium.desktop;org.kde.falkon.desktop;
+application/pdf=atril.desktop;org.gnome.Evince.desktop;org.gnome.Papers.desktop;org.kde.okular.desktop;okularApplication_pdf.desktop;
+application/epub+zip=atril.desktop;org.kde.okular.desktop;okularApplication_epub.desktop;
+application/postscript=atril.desktop;org.gnome.Evince.desktop;org.gnome.Papers.desktop;org.kde.okular.desktop;okularApplication_ghostview.desktop;
+image/vnd.djvu=atril.desktop;org.gnome.Evince.desktop;org.gnome.Papers.desktop;org.kde.okular.desktop;okularApplication_djvu.desktop;
+image/png=org.xfce.ristretto.desktop;ristretto.desktop;eom.desktop;org.gnome.eog.desktop;org.gnome.Loupe.desktop;org.kde.gwenview.desktop;
+image/jpeg=org.xfce.ristretto.desktop;ristretto.desktop;eom.desktop;org.gnome.eog.desktop;org.gnome.Loupe.desktop;org.kde.gwenview.desktop;
+image/gif=org.xfce.ristretto.desktop;ristretto.desktop;eom.desktop;org.gnome.eog.desktop;org.gnome.Loupe.desktop;org.kde.gwenview.desktop;
+image/webp=org.xfce.ristretto.desktop;ristretto.desktop;eom.desktop;org.gnome.eog.desktop;org.gnome.Loupe.desktop;org.kde.gwenview.desktop;
+image/svg+xml=org.xfce.ristretto.desktop;ristretto.desktop;eom.desktop;org.gnome.eog.desktop;org.gnome.Loupe.desktop;org.kde.gwenview.desktop;
+image/bmp=org.xfce.ristretto.desktop;ristretto.desktop;eom.desktop;org.gnome.eog.desktop;org.gnome.Loupe.desktop;org.kde.gwenview.desktop;
+image/tiff=org.xfce.ristretto.desktop;ristretto.desktop;eom.desktop;org.gnome.eog.desktop;org.gnome.Loupe.desktop;org.kde.gwenview.desktop;
+image/avif=org.xfce.ristretto.desktop;ristretto.desktop;eom.desktop;org.gnome.eog.desktop;org.gnome.Loupe.desktop;org.kde.gwenview.desktop;
+image/heif=org.xfce.ristretto.desktop;ristretto.desktop;eom.desktop;org.gnome.eog.desktop;org.gnome.Loupe.desktop;org.kde.gwenview.desktop;
+application/zip=engrampa.desktop;xarchiver.desktop;org.gnome.FileRoller.desktop;org.kde.ark.desktop;
+application/x-tar=engrampa.desktop;xarchiver.desktop;org.gnome.FileRoller.desktop;org.kde.ark.desktop;
+application/x-compressed-tar=engrampa.desktop;xarchiver.desktop;org.gnome.FileRoller.desktop;org.kde.ark.desktop;
+application/x-bzip2-compressed-tar=engrampa.desktop;xarchiver.desktop;org.gnome.FileRoller.desktop;org.kde.ark.desktop;
+application/x-xz-compressed-tar=engrampa.desktop;xarchiver.desktop;org.gnome.FileRoller.desktop;org.kde.ark.desktop;
+application/x-zstd-compressed-tar=engrampa.desktop;xarchiver.desktop;org.gnome.FileRoller.desktop;org.kde.ark.desktop;
+application/x-7z-compressed=engrampa.desktop;xarchiver.desktop;org.gnome.FileRoller.desktop;org.kde.ark.desktop;
+application/gzip=engrampa.desktop;xarchiver.desktop;org.gnome.FileRoller.desktop;org.kde.ark.desktop;
+application/x-xz=engrampa.desktop;xarchiver.desktop;org.gnome.FileRoller.desktop;org.kde.ark.desktop;
+application/vnd.rar=engrampa.desktop;xarchiver.desktop;org.gnome.FileRoller.desktop;org.kde.ark.desktop;
+application/x-rar=engrampa.desktop;xarchiver.desktop;org.gnome.FileRoller.desktop;org.kde.ark.desktop;
+audio/mpeg=org.xfce.Parole.desktop;parole.desktop;vlc.desktop;mpv.desktop;org.gnome.Rhythmbox3.desktop;org.kde.elisa.desktop;
+audio/flac=org.xfce.Parole.desktop;parole.desktop;vlc.desktop;mpv.desktop;org.gnome.Rhythmbox3.desktop;org.kde.elisa.desktop;
+audio/ogg=org.xfce.Parole.desktop;parole.desktop;vlc.desktop;mpv.desktop;org.gnome.Rhythmbox3.desktop;org.kde.elisa.desktop;
+audio/x-vorbis+ogg=org.xfce.Parole.desktop;parole.desktop;vlc.desktop;mpv.desktop;org.gnome.Rhythmbox3.desktop;org.kde.elisa.desktop;
+audio/x-opus+ogg=org.xfce.Parole.desktop;parole.desktop;vlc.desktop;mpv.desktop;org.gnome.Rhythmbox3.desktop;org.kde.elisa.desktop;
+audio/x-wav=org.xfce.Parole.desktop;parole.desktop;vlc.desktop;mpv.desktop;org.gnome.Rhythmbox3.desktop;org.kde.elisa.desktop;
+audio/aac=org.xfce.Parole.desktop;parole.desktop;vlc.desktop;mpv.desktop;org.gnome.Rhythmbox3.desktop;org.kde.elisa.desktop;
+audio/mp4=org.xfce.Parole.desktop;parole.desktop;vlc.desktop;mpv.desktop;org.gnome.Rhythmbox3.desktop;org.kde.elisa.desktop;
+video/mp4=org.xfce.Parole.desktop;parole.desktop;vlc.desktop;mpv.desktop;org.gnome.Totem.desktop;org.kde.haruna.desktop;
+video/x-matroska=org.xfce.Parole.desktop;parole.desktop;vlc.desktop;mpv.desktop;org.gnome.Totem.desktop;org.kde.haruna.desktop;
+video/webm=org.xfce.Parole.desktop;parole.desktop;vlc.desktop;mpv.desktop;org.gnome.Totem.desktop;org.kde.haruna.desktop;
+video/x-msvideo=org.xfce.Parole.desktop;parole.desktop;vlc.desktop;mpv.desktop;org.gnome.Totem.desktop;org.kde.haruna.desktop;
+video/quicktime=org.xfce.Parole.desktop;parole.desktop;vlc.desktop;mpv.desktop;org.gnome.Totem.desktop;org.kde.haruna.desktop;
+video/mpeg=org.xfce.Parole.desktop;parole.desktop;vlc.desktop;mpv.desktop;org.gnome.Totem.desktop;org.kde.haruna.desktop;
+video/ogg=org.xfce.Parole.desktop;parole.desktop;vlc.desktop;mpv.desktop;org.gnome.Totem.desktop;org.kde.haruna.desktop;
+application/vnd.oasis.opendocument.text=libreoffice-writer.desktop;
+application/vnd.openxmlformats-officedocument.wordprocessingml.document=libreoffice-writer.desktop;
+application/msword=libreoffice-writer.desktop;
+application/rtf=libreoffice-writer.desktop;
+application/vnd.oasis.opendocument.spreadsheet=libreoffice-calc.desktop;
+application/vnd.openxmlformats-officedocument.spreadsheetml.sheet=libreoffice-calc.desktop;
+application/vnd.ms-excel=libreoffice-calc.desktop;
+text/csv=libreoffice-calc.desktop;org.xfce.mousepad.desktop;mousepad.desktop;pluma.desktop;featherpad.desktop;
+application/vnd.oasis.opendocument.presentation=libreoffice-impress.desktop;
+application/vnd.openxmlformats-officedocument.presentationml.presentation=libreoffice-impress.desktop;
+application/vnd.ms-powerpoint=libreoffice-impress.desktop;
+x-scheme-handler/mailto=thunderbird.desktop;org.mozilla.Thunderbird.desktop;thunderbird_thunderbird.desktop;org.kde.kmail2.desktop;
+message/rfc822=thunderbird.desktop;org.mozilla.Thunderbird.desktop;thunderbird_thunderbird.desktop;org.kde.kmail2.desktop;

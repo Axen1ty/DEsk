@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=DEsk: Network applet
+Name[ja]=DEsk: ネットワーク
+Comment=Networks, in the tray
+Exec=desk-session-helper network
+TryExec=desk-session-helper
+OnlyShowIn=DEsk;
+NoDisplay=true
+X-GNOME-Autostart-enabled=true

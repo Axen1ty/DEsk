@@ -1,0 +1,6 @@
+option('xwayland', type: 'feature', value: 'auto',
+  description: 'Open X11 programs through Xwayland (needs wlroots built with it, and xcb)')
+option('post', type: 'feature', value: 'auto',
+  description: 'Take the post (notifications) and keep the tray, over the session bus (needs libsystemd)')
+option('sound', type: 'feature', value: 'auto',
+  description: 'The desk\'s sounds to the sound server, through libpulse (PulseAudio or PipeWire); without it, ALSA is tried at run time')

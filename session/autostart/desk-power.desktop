@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=DEsk: Battery
+Name[ja]=DEsk: 電池
+Comment=A letter when the battery runs low
+Exec=desk-session-helper power
+TryExec=desk-session-helper
+OnlyShowIn=DEsk;
+NoDisplay=true
+X-GNOME-Autostart-enabled=true

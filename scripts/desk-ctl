@@ -1,0 +1,73 @@
+#!/bin/sh
+# desk-ctl -- for when DEsk's own parts get stuck.
+#
+#   desk-ctl reset          the desk set right again, as Ctrl+Alt+Del pressed
+#                           twice: whatever it has open or in hand put away,
+#                           everything drawn again, its settings read again,
+#                           the keyboard and the pointer set up again. The
+#                           windows stay as they are; a locked desk stays
+#                           locked.
+#   desk-ctl logout         the session ends, as Ctrl+Alt+Del three times (or
+#                           LOG OUT on the Control Panel): the windows are
+#                           asked to close first, and one that will not holds
+#                           it up -- run it again within a minute to go ahead.
+#   desk-ctl logout --now   it ends at once, and the windows with it: what
+#                           they have not saved is lost (the desk's own memo
+#                           and calendar keep theirs).
+#
+# From a terminal on the desk, or -- when the desk will not answer at all --
+# from another VT (Ctrl+Alt+F3, logged in as the same user).
+set -eu
+
+usage() {
+	sed -n '2,/^set /s/^# \{0,1\}//p' "$0"
+}
+
+run="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+lock="$run/desk.lock"
+pid=$(head -n 1 "$lock" 2>/dev/null || true)
+case "$pid" in
+'' | *[!0-9]*) pid="" ;;
+esac
+# the desk that holds the lock, and nothing else by that number
+if [ -z "$pid" ] || [ "$(cat "/proc/$pid/comm" 2>/dev/null)" != desk ]; then
+	case "${1:-}" in
+	reset | logout)
+		echo "desk-ctl: DEsk is not running here (nothing in $lock)" >&2
+		exit 1
+		;;
+	esac
+fi
+
+case "${1:-}" in
+reset)
+	kill -USR1 "$pid"
+	echo "DEsk: set right again."
+	;;
+logout)
+	if [ "${2:-}" = --now ]; then
+		kill -TERM "$pid"
+		# and if it will not go, it is put out
+		i=0
+		while kill -0 "$pid" 2>/dev/null && [ "$i" -lt 50 ]; do
+			sleep 0.1
+			i=$((i + 1))
+		done
+		if kill -0 "$pid" 2>/dev/null; then
+			kill -KILL "$pid"
+		fi
+		echo "DEsk: ended."
+	else
+		kill -USR2 "$pid"
+		echo "DEsk: ending -- the windows are asked to close first."
+	fi
+	;;
+-h | --help | "")
+	usage
+	;;
+*)
+	echo "desk-ctl: what is \"$1\"?" >&2
+	usage >&2
+	exit 2
+	;;
+esac

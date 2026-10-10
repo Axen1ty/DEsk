@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=DEsk: Keyring
+Name[ja]=DEsk: キーリング
+Comment=Keeps the passwords programs store
+Exec=desk-session-helper keyring
+TryExec=desk-session-helper
+OnlyShowIn=DEsk;
+NoDisplay=true
+X-GNOME-Autostart-enabled=true

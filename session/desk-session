@@ -1,0 +1,231 @@
+#!/bin/sh
+# Login / TTY session wrapper for the DEsk Wayland desktop.
+set -eu
+
+export XDG_SESSION_TYPE=wayland
+export XDG_SESSION_DESKTOP=DEsk
+export XDG_CURRENT_DESKTOP="${XDG_CURRENT_DESKTOP:-DEsk}"
+export DESKTOP_SESSION=DEsk
+
+# Its own directory on PATH: installed where a display manager does not
+# look (/opt/desk/bin, say), it still finds desk, desk-session-helper and
+# the rest that came with it. A display manager runs it by its full path,
+# or by its name from a shell that found it on PATH; a link to it is
+# followed to where it really is.
+PATH="${PATH:-/usr/local/bin:/usr/bin:/bin}"
+here=$(command -v "$0" 2>/dev/null || printf '%s\n' "$0")
+here=$(readlink -f -- "$here" 2>/dev/null || printf '%s\n' "$here")
+here=$(CDPATH= cd -- "$(dirname -- "$here")" 2>/dev/null && pwd) || here=
+if [ -n "$here" ]; then
+	case ":$PATH:" in
+	*":$here:"*) ;;
+	*) PATH="$here:$PATH" ;;
+	esac
+fi
+export PATH
+
+# The directories programs' menu entries are found in (XDG_DATA_DIRS),
+# with what a display manager leaves off. First the share directory beside
+# that bin, when DEsk is installed there: its default programs
+# (desk-mimeapps.list) and its own programs' entries, for the drawer and
+# for GIO. Then snaps and flatpaks: snapd and flatpak add theirs from
+# /etc/profile.d, which a display manager does not read for the Wayland
+# session of a desktop it does not know. Their entries go after the
+# system's (the user's own flatpaks before the system's, as flatpak has
+# them), and the snaps' commands at the end of PATH.
+data_listed() {
+	case ":$XDG_DATA_DIRS:" in
+	*":$1:"*|*":$1/:"*) return 0 ;;
+	esac
+	return 1
+}
+data_dir() {
+	[ -d "$1" ] && ! data_listed "$1" && XDG_DATA_DIRS="$XDG_DATA_DIRS:$1"
+	return 0
+}
+XDG_DATA_DIRS="${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
+case "$here" in
+*/bin)
+	share="${here%/bin}/share"
+	if [ -f "$share/applications/desk-mimeapps.list" ] && ! data_listed "$share"; then
+		XDG_DATA_DIRS="$share:$XDG_DATA_DIRS"
+	fi
+	;;
+esac
+data_dir /var/lib/snapd/desktop
+data_dir "${XDG_DATA_HOME:-${HOME:-}/.local/share}/flatpak/exports/share"
+data_dir /var/lib/flatpak/exports/share
+export XDG_DATA_DIRS
+if [ -d /snap/bin ]; then
+	case ":$PATH:" in
+	*:/snap/bin:*|*:/snap/bin/:*) ;;
+	*) PATH="$PATH:/snap/bin" ;;
+	esac
+fi
+
+# Wayland first, and X through Xwayland for whatever cannot do Wayland:
+# DEsk sets DISPLAY itself when it has an Xwayland to offer.
+export GDK_BACKEND="${GDK_BACKEND:-wayland,x11}"
+export QT_QPA_PLATFORM="${QT_QPA_PLATFORM:-wayland;xcb}"
+export SDL_VIDEODRIVER="${SDL_VIDEODRIVER:-wayland,x11}"
+export CLUTTER_BACKEND=wayland
+export MOZ_ENABLE_WAYLAND=1
+export ELECTRON_OZONE_PLATFORM_HINT=wayland
+
+# DEsk is the whole desktop here: it tells D-Bus where the display is and
+# starts what the autostart directories ask for (session.c)
+export DESK_SESSION=1
+
+# Qt's programs. DEsk's standard set is GTK's classic programs, so a Qt
+# program is dressed as they are -- GTK's colours, icons, fonts and file
+# dialog -- by Qt's own GTK platform theme: what Qt picks by itself under
+# Xfce or MATE, but not under a desktop it does not know, as DEsk is.
+# Without that, KDE's Plasma integration if it is there: a Qt program
+# drawn as in Plasma still has its icons, which with neither it would go
+# without. One the user set (qt6ct, say) is left as it is.
+#
+# GTK's own look is not touched. It is whatever theme the user chose (on
+# Wayland GTK reads it from org.gnome.desktop.interface), and one named
+# here might not be installed.
+qt_theme() {
+	for d in /usr/lib/*/qt6 /usr/lib/qt6 /usr/lib64/qt6 /usr/lib/*/qt5 /usr/lib/qt /usr/lib64/qt5; do
+		[ -e "$d/plugins/platformthemes/$1" ] && return 0
+	done
+	return 1
+}
+if [ -z "${QT_QPA_PLATFORMTHEME:-}" ]; then
+	if qt_theme libqgtk3.so; then
+		export QT_QPA_PLATFORMTHEME=gtk3
+	elif qt_theme KDEPlasmaPlatformTheme6.so || qt_theme KDEPlasmaPlatformTheme5.so; then
+		export QT_QPA_PLATFORMTHEME=kde
+	fi
+fi
+
+# The input method, for programs (desk-session-helper ime starts it).
+# IBus: programs on Wayland type through DEsk (text-input), which hands
+# the keys to IBus and knows where the window is -- so the candidates come
+# up under the cursor and the clock shows あ/A as 半角/全角 goes. Told to use
+# IBus directly (GTK_IM_MODULE=ibus, QT_IM_MODULE=ibus, which a system's
+# im-config may have set), they would bypass that and put the candidates
+# in the corner of the screen, so those are taken back for IBus; X programs
+# keep XIM. fcitx5 is still used directly. DESK_IM says which it is, for
+# the helper.
+# Only where one is wanted (desk-session-helper ime-kind: a language
+# typed through one, or an engine set up); otherwise none, and nothing in
+# the tray.
+DESK_IM=
+if command -v desk-session-helper >/dev/null 2>&1; then
+	DESK_IM=$(desk-session-helper ime-kind) || DESK_IM=
+fi
+case "${DESK_IM:-}" in
+ibus)
+	unset GTK_IM_MODULE QT_IM_MODULE
+	export DESK_IM XMODIFIERS=@im=ibus QT_IM_MODULES="wayland;ibus"
+	;;
+fcitx)
+	export DESK_IM GTK_IM_MODULE=fcitx QT_IM_MODULE=fcitx XMODIFIERS=@im=fcitx
+	;;
+esac
+
+# The look of other programs in DEsk: its own layer of settings over the
+# user's (desk-dconf-profile: dconf's "desk" database over "user"), so what
+# is set for programs here -- nwg-look choosing a theme, say -- stays here,
+# and another desktop on the machine keeps its own look. The first time,
+# that layer is given DEsk's icons (manila folders, papers, a brass globe)
+# and its GTK theme (paper, ink and brass), where they are installed; and
+# GTK's settings.ini is given them too where it names none, for the GTK
+# programs that run through X (MATE's, Caja and Pluma among them): without
+# a settings daemon -- which DEsk does not run, and every other desktop
+# does -- that file is what they go by. DESK_LOOK=0 leaves all of it alone.
+look_share=""
+for d in "$here" "${here%/bin}/share/desk" $(printf '%s\n' "$XDG_DATA_DIRS" | tr ':' ' '); do
+	case "$d" in
+	*/share) d="$d/desk" ;;
+	esac
+	if [ -f "$d/desk-dconf-profile" ]; then
+		look_share="$d"
+		break
+	fi
+done
+if [ "${DESK_LOOK:-1}" != 0 ] && [ -n "$look_share" ] && [ -z "${DCONF_PROFILE:-}" ]; then
+	export DCONF_PROFILE="$look_share/desk-dconf-profile"
+	look_done="${XDG_STATE_HOME:-$HOME/.local/state}/desk/look-given"
+	look_installed() {
+		for d in "${XDG_DATA_HOME:-$HOME/.local/share}" $(printf '%s\n' "$XDG_DATA_DIRS" | tr ':' ' '); do
+			[ -f "$d/$1/DEsk/index.theme" ] && return 0
+		done
+		return 1
+	}
+	if [ ! -e "$look_done" ] && command -v gsettings >/dev/null 2>&1 \
+		&& look_installed icons && look_installed themes; then
+		if gsettings set org.gnome.desktop.interface icon-theme DEsk 2>/dev/null \
+			&& gsettings set org.gnome.desktop.interface gtk-theme DEsk 2>/dev/null; then
+			ini="${XDG_CONFIG_HOME:-$HOME/.config}/gtk-3.0/settings.ini"
+			mkdir -p "$(dirname "$ini")"
+			[ -f "$ini" ] || printf '[Settings]\n' > "$ini"
+			grep -q '^\[Settings\]' "$ini" || printf '[Settings]\n' >> "$ini"
+			for kv in gtk-icon-theme-name=DEsk gtk-theme-name=DEsk; do
+				if ! grep -q "^${kv%%=*}[[:space:]]*=" "$ini"; then
+					sed -i "/^\[Settings\]/a $kv" "$ini"
+				fi
+			done
+			mkdir -p "$(dirname "$look_done")"
+			: > "$look_done"
+		fi
+	fi
+fi
+
+# The pointer as the look of other programs has it: nwg-look and GNOME's
+# Tweaks keep it in GSettings, which neither DEsk's own pointer nor X
+# programs read -- they go by XCURSOR_THEME and XCURSOR_SIZE.
+if command -v gsettings >/dev/null 2>&1; then
+	if [ -z "${XCURSOR_THEME:-}" ]; then
+		t=$(gsettings get org.gnome.desktop.interface cursor-theme 2>/dev/null | tr -d "'")
+		[ -n "$t" ] && XCURSOR_THEME=$t && export XCURSOR_THEME
+	fi
+	if [ -z "${XCURSOR_SIZE:-}" ]; then
+		z=$(gsettings get org.gnome.desktop.interface cursor-size 2>/dev/null)
+		case "$z" in
+		''|*[!0-9]*) ;;
+		*) [ "$z" -gt 0 ] && XCURSOR_SIZE=$z && export XCURSOR_SIZE ;;
+		esac
+	fi
+fi
+
+# the name it had before: DESKWM_NESTED still means DESK_NESTED
+DESK_NESTED="${DESK_NESTED:-${DESKWM_NESTED:-}}"
+
+# A display manager already owns the seat. Do not inherit a foreign compositor.
+if [ -z "${DESK_NESTED:-}" ]; then
+	unset WAYLAND_DISPLAY
+	unset DISPLAY
+fi
+
+if [ -z "${XDG_RUNTIME_DIR:-}" ]; then
+	if [ -d "/run/user/$(id -u)" ]; then
+		export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+	else
+		export XDG_RUNTIME_DIR="${TMPDIR:-/tmp}/desk-$(id -u)"
+		# ours alone: made now, or left from before and still a directory
+		# of ours -- not something another user put there first
+		mkdir -m 700 -p "$XDG_RUNTIME_DIR"
+		if [ -L "$XDG_RUNTIME_DIR" ] || [ "$(stat -c %u "$XDG_RUNTIME_DIR")" != "$(id -u)" ]; then
+			echo "desk-session: $XDG_RUNTIME_DIR is not yours: set XDG_RUNTIME_DIR" >&2
+			exit 1
+		fi
+		chmod 700 "$XDG_RUNTIME_DIR"
+	fi
+fi
+
+# What DEsk says as it runs is kept: the last session's in
+# ~/.local/state/desk/session.log, the one before as session.log.old -- the
+# room being traced and on what, a program that would not start. Nested in
+# another desktop, or with DESK_LOG=- , it goes where it would have.
+if [ -z "${DESK_NESTED:-}" ] && [ "${DESK_LOG:-}" != "-" ]; then
+	logdir="${XDG_STATE_HOME:-${HOME:-/tmp}/.local/state}/desk"
+	if mkdir -p "$logdir" 2>/dev/null; then
+		[ -f "$logdir/session.log" ] && mv -f "$logdir/session.log" "$logdir/session.log.old" || true
+		exec desk "$@" > "$logdir/session.log" 2>&1
+	fi
+fi
+exec desk "$@"

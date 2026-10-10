@@ -1,0 +1,310 @@
+/* DEsk -- GTK 3 programs dressed for the desk: paper, ink and brass.
+ *
+ * On the desk every window is a sheet of paper (DEsk draws the sheet and
+ * its heading); what a program draws inside it should look like it was
+ * printed on that paper, not like a grey panel pinned to it. So this is
+ * Adwaita -- everything it does it still does, and anything not mentioned
+ * here is Adwaita's -- with its colours put into the desk's: a warm paper
+ * for windows and a whiter one for what is written on (lists, text,
+ * fields), ink for the words, brass for what is chosen, and the bars of a
+ * window in the colour of the manila folders the icons use.
+ *
+ * Set by DEsk for its own sessions only (desk-session: a dconf layer of
+ * DEsk's own over the user's), so another desktop on the same machine
+ * keeps its look. */
+
+@import url("resource:///org/gtk/libgtk/theme/Adwaita/gtk-contained.css");
+
+@define-color theme_fg_color #2e2318;
+@define-color theme_text_color #2b2116;
+@define-color theme_bg_color #efe6d3;
+@define-color theme_base_color #fbf7ee;
+@define-color theme_selected_bg_color #a8783a;
+@define-color theme_selected_fg_color #fffaf0;
+@define-color insensitive_bg_color #ebe2cf;
+@define-color insensitive_fg_color #9a8b72;
+@define-color insensitive_base_color #f3ecdd;
+@define-color theme_unfocused_fg_color #2e2318;
+@define-color theme_unfocused_text_color #2b2116;
+@define-color theme_unfocused_bg_color #efe6d3;
+@define-color theme_unfocused_base_color #fbf7ee;
+@define-color theme_unfocused_selected_bg_color #b8956a;
+@define-color theme_unfocused_selected_fg_color #fffaf0;
+@define-color unfocused_insensitive_color #9a8b72;
+@define-color borders #c4ad86;
+@define-color unfocused_borders #cdb994;
+@define-color warning_color #b9731c;
+@define-color error_color #b23a2a;
+@define-color success_color #3f7a4a;
+@define-color desk_bar_top #efe2c6;
+@define-color desk_bar_bottom #e0cca5;
+@define-color desk_bar_border #b89c6c;
+@define-color desk_link #7a4b1e;
+
+/* ---- the paper ---- */
+
+window, .background, dialog .dialog-vbox, messagedialog .dialog-action-area {
+	background-color: @theme_bg_color;
+	color: @theme_fg_color;
+}
+
+.view, iconview, .view text, iconview text, textview text, treeview.view,
+list, listbox, row, flowbox, .content-view {
+	background-color: @theme_base_color;
+	color: @theme_text_color;
+}
+
+.view:selected, .view:selected:focus, .view text:selected, iconview:selected,
+iconview:selected:focus, iconview text:selected, textview text:selected,
+treeview.view:selected, treeview.view:selected:focus, list row:selected,
+listbox row:selected, flowbox flowboxchild:selected, row:selected,
+.view text selection, iconview text selection, textview text selection,
+entry selection, label selection, spinbutton selection {
+	background-color: @theme_selected_bg_color;
+	color: @theme_selected_fg_color;
+}
+
+.view:selected:backdrop, iconview:selected:backdrop, treeview.view:selected:backdrop,
+list row:selected:backdrop, row:selected:backdrop {
+	background-color: @theme_unfocused_selected_bg_color;
+	color: @theme_unfocused_selected_fg_color;
+}
+
+treeview.view header button, treeview.view header button:hover {
+	background-image: linear-gradient(to bottom, #f5eedf, #e9dcc0);
+	border-color: @borders;
+	color: #5a4630;
+}
+
+*:link, link, button.link, button.link label { color: @desk_link; }
+*:visited, link:visited { color: #5e3a18; }
+
+separator { background-color: alpha(@borders, 0.7); }
+
+/* ---- the bars of a window: the manila of the folders ---- */
+
+headerbar, .titlebar, menubar, toolbar, .primary-toolbar, .inline-toolbar,
+actionbar, searchbar, searchbar > revealer > box {
+	background-color: @desk_bar_bottom;
+	background-image: linear-gradient(to bottom, @desk_bar_top, @desk_bar_bottom);
+	border-color: @desk_bar_border;
+	color: @theme_fg_color;
+	box-shadow: inset 0 1px rgba(255, 250, 235, 0.6);
+}
+
+headerbar:backdrop, .titlebar:backdrop, menubar:backdrop, toolbar:backdrop {
+	background-image: linear-gradient(to bottom, #efe4cc, #e5d5b4);
+	color: #6b5a44;
+}
+
+menubar > menuitem { color: @theme_fg_color; }
+menubar > menuitem:hover {
+	background-color: @theme_selected_bg_color;
+	color: @theme_selected_fg_color;
+	box-shadow: none;
+}
+
+statusbar { background-color: #e9dfca; color: #5a4630; border-top: 1px solid @borders; }
+
+/* ---- buttons: card, pressed in when down, brass when on ---- */
+
+button {
+	background-image: linear-gradient(to bottom, #f7efdf, #e4d4b2);
+	border-color: #ad9163;
+	color: @theme_fg_color;
+	text-shadow: 0 1px rgba(255, 250, 235, 0.6);
+	box-shadow: inset 0 1px rgba(255, 252, 242, 0.8), 0 1px rgba(90, 60, 25, 0.12);
+}
+
+button:hover {
+	background-image: linear-gradient(to bottom, #fcf6ea, #eadcbe);
+	border-color: #a1855a;
+}
+
+button:active, button:checked {
+	background-image: linear-gradient(to bottom, #d8c39a, #e5d4b0);
+	border-color: #96784a;
+	box-shadow: inset 0 1px 2px rgba(80, 50, 20, 0.25);
+}
+
+button:checked {
+	background-image: linear-gradient(to bottom, #c99b54, #b4823e);
+	color: #fffaf0;
+	text-shadow: 0 -1px rgba(90, 55, 15, 0.4);
+}
+
+button:disabled {
+	background-image: none;
+	background-color: #eee6d4;
+	border-color: #d2c19f;
+	color: @insensitive_fg_color;
+	box-shadow: none;
+	text-shadow: none;
+}
+
+button.flat, toolbar button, headerbar button.flat, .path-bar button,
+placessidebar row button, button.image-button.flat {
+	background-image: none;
+	background-color: transparent;
+	border-color: transparent;
+	box-shadow: none;
+}
+
+button.flat:hover, toolbar button:hover, .path-bar button:hover {
+	background-image: linear-gradient(to bottom, #f9f2e3, #ebdec3);
+	border-color: #b39769;
+	box-shadow: inset 0 1px rgba(255, 252, 242, 0.8);
+}
+
+button.flat:checked, toolbar button:checked, .path-bar button:checked {
+	background-image: linear-gradient(to bottom, #e6d4ad, #d9c393);
+	border-color: #a1855a;
+	color: @theme_fg_color;
+	text-shadow: none;
+}
+
+button.suggested-action {
+	background-image: linear-gradient(to bottom, #c99b54, #a8783a);
+	border-color: #85592a;
+	color: #fffaf0;
+	text-shadow: 0 -1px rgba(90, 55, 15, 0.5);
+}
+
+button.destructive-action {
+	background-image: linear-gradient(to bottom, #c8553f, #a33826);
+	border-color: #7d2617;
+	color: #fffaf0;
+}
+
+/* ---- what is written in ---- */
+
+entry, spinbutton:not(.vertical), spinbutton.vertical entry {
+	background-color: @theme_base_color;
+	background-image: none;
+	border-color: #b8a07a;
+	color: @theme_text_color;
+	box-shadow: inset 0 1px 1px rgba(80, 55, 25, 0.12);
+}
+
+entry:focus, spinbutton:focus {
+	border-color: @theme_selected_bg_color;
+	box-shadow: inset 0 0 0 1px alpha(@theme_selected_bg_color, 0.6);
+}
+
+entry:disabled {
+	background-color: @insensitive_base_color;
+	color: @insensitive_fg_color;
+}
+
+/* ---- menus and what pops up ---- */
+
+menu, .menu, .context-menu, popover, popover.background, .csd menu, .csd popover {
+	background-color: #f8f2e5;
+	border-color: #b89c6c;
+	color: @theme_fg_color;
+}
+
+menu menuitem:hover, .menu menuitem:hover, .context-menu menuitem:hover,
+popover modelbutton:hover, modelbutton.flat:hover {
+	background-color: @theme_selected_bg_color;
+	color: @theme_selected_fg_color;
+}
+
+menu menuitem:disabled, .menu menuitem:disabled { color: @insensitive_fg_color; }
+
+tooltip, tooltip.background {
+	background-color: rgba(46, 35, 24, 0.94);
+	color: #f8f1e2;
+	border-color: rgba(0, 0, 0, 0.3);
+}
+tooltip * { color: #f8f1e2; }
+
+/* ---- the side pane: a folder's inside, a shade darker ---- */
+
+.sidebar, placessidebar, placessidebar list, stacksidebar, .navigation-sidebar,
+.sidebar list, .sidebar row {
+	background-color: #ebe1cb;
+	color: #3a2c1e;
+	border-color: @borders;
+}
+
+placessidebar row:selected, .sidebar row:selected, stacksidebar row:selected {
+	background-color: @theme_selected_bg_color;
+	color: @theme_selected_fg_color;
+}
+
+/* ---- tabs: index tabs on a folder, the one in front its paper ---- */
+
+notebook > header {
+	background-color: #e4d6b9;
+	border-color: @desk_bar_border;
+}
+
+notebook > header > tabs > tab { color: #6b5a44; }
+notebook > header > tabs > tab:hover { color: @theme_fg_color; box-shadow: none; }
+notebook > header > tabs > tab:checked {
+	background-color: @theme_bg_color;
+	color: @theme_fg_color;
+	box-shadow: inset 0 3px @theme_selected_bg_color;
+}
+
+notebook > stack:not(:only-child) { background-color: @theme_bg_color; }
+
+/* ---- scroll bars, switches, ticks, bars and sliders ---- */
+
+scrollbar { background-color: transparent; border-color: transparent; }
+scrollbar slider { background-color: #a88d63; border-color: transparent; }
+scrollbar slider:hover { background-color: #8f7148; }
+scrollbar slider:active { background-color: @theme_selected_bg_color; }
+
+switch { background-color: #ddcfb2; border-color: #ad9163; }
+switch:checked { background-color: @theme_selected_bg_color; border-color: #85592a; }
+switch slider {
+	background-image: linear-gradient(to bottom, #fbf6ea, #e8dabd);
+	border-color: #96784a;
+}
+
+checkbutton check, radiobutton radio, treeview.view check, treeview.view radio,
+check, radio {
+	background-image: linear-gradient(to bottom, #fdf9f0, #ece0c6);
+	border-color: #a1855a;
+	color: @theme_fg_color;
+}
+
+check:checked, radio:checked, check:indeterminate, radio:indeterminate {
+	background-image: linear-gradient(to bottom, #c99b54, #a8783a);
+	border-color: #85592a;
+	color: #fffaf0;
+}
+
+progressbar progress, levelbar block.filled, scale highlight, scale fill {
+	background-color: @theme_selected_bg_color;
+	background-image: linear-gradient(to bottom, #d1a660, #a8783a);
+	border-color: #85592a;
+}
+
+progressbar trough, levelbar trough, scale trough {
+	background-color: #e1d5bb;
+	border-color: #bfa67c;
+}
+
+scale slider {
+	background-image: linear-gradient(to bottom, #fbf5e7, #e5d6b6);
+	border-color: #96784a;
+}
+
+/* the line under a list's dragged row, a dropped file's target */
+.view:drop(active), treeview.view:drop(active), iconview:drop(active),
+list:drop(active), row:drop(active) {
+	box-shadow: inset 0 0 0 2px @theme_selected_bg_color;
+}
+
+/* a thing being chosen with the rubber band in a file manager */
+.view rubberband, iconview rubberband, treeview.view rubberband, rubberband {
+	background-color: alpha(@theme_selected_bg_color, 0.25);
+	border: 1px solid @theme_selected_bg_color;
+}
+
+infobar.info > revealer > box { background-color: #e9dcbc; color: @theme_fg_color; }
+infobar.warning > revealer > box { background-color: #e9c98a; color: @theme_fg_color; }
+infobar.error > revealer > box { background-color: #c8553f; color: #fffaf0; }

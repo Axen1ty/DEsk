@@ -1,0 +1,52 @@
+### The DEsk desktop for Debian and Ubuntu, as one package that brings
+### the rest: build it with equivs (apt install equivs) --
+###
+###   equivs-build packaging/debian/desk-desktop.equivs
+###   sudo apt install ./desk-desktop_*_all.deb
+###
+### -- and the programs listed come with it, as GNOME's or KDE's come with
+### theirs. They are the classic GTK programs of Xfce and MATE, the same
+### set scripts/install_debian.sh and install_ubuntu.sh install. DEsk
+### itself is installed from its source (those scripts, or meson install),
+### so it is not one of them. scripts/install-desktop.sh does the same on
+### Fedora, Arch and openSUSE.
+###
+### Depends holds what the desk is used with every day, and every program
+### Shell Settings' System pad opens (where Ubuntu 24.04 has no nwg-look,
+### GNOME's Tweaks, which sets the same); Recommends what not every Debian
+### or Ubuntu has (Klee), the Japanese converter, and the office suite and
+### the other extras.
+Section: x11
+Priority: optional
+Standards-Version: 4.7.0
+Package: desk-desktop
+Version: 0.2
+Maintainer: DEsk <desk@users.noreply.invalid>
+Architecture: all
+Depends: xfce4-terminal, thunar, gvfs, udisks2, thunar-volman, tumbler, mousepad, ristretto,
+ atril, engrampa, zip, unzip, parole, firefox-esr | firefox, mate-polkit, gnome-keyring,
+ libpam-gnome-keyring, network-manager, network-manager-applet | network-manager-gnome,
+ nm-connection-editor | network-manager-gnome, blueman, udiskie,
+ gir1.2-ayatanaappindicator3-0.1, poweralertd, package-update-indicator,
+ pipewire-pulse | pulseaudio,
+ wireplumber, pavucontrol, system-config-printer, cups, gnome-disk-utility, wdisplays,
+ qdirstat | baobab, colord, lxqt-admin, mugshot, seahorse, gnome-packagekit,
+ backintime-qt | deja-dup, xfce4-taskmanager, hardinfo2 | cpu-x, mesa-utils,
+ qt6-wayland, qtwayland5,
+ xfce4-settings, qt6-gtk-platformtheme, qt5-gtk-platformtheme,
+ xdg-desktop-portal, xdg-desktop-portal-wlr, xdg-desktop-portal-gtk,
+ fonts-noto-core, fonts-noto-cjk, fonts-noto-color-emoji, fonts-urw-base35,
+ xdg-user-dirs, xdg-utils, xwayland, wl-clipboard, grim, slurp, libnotify-bin,
+ dbus-user-session, nwg-look | gnome-tweaks, adwaita-icon-theme-legacy | yaru-theme-icon, ibus
+Recommends: fonts-klee, ibus-mozc,
+ libreoffice-writer, libreoffice-calc, libreoffice-impress, libreoffice-gtk3,
+ thunderbird, galculator, xfce4-taskmanager, simple-scan
+Description: DEsk desktop: the free programs that go with DEsk
+ DEsk draws the desk -- windows as sheets of paper on a walnut desk, the
+ drawer, the bookcase, the post box, the Control Panel. This brings the free
+ programs that make it a whole desktop: the classic GTK programs of Xfce
+ and MATE -- terminal, files, text editor, viewers and player, archives --
+ which leave their frame to DEsk and lie on the desk as sheets of paper,
+ Firefox, and the usual parts of a Linux desktop: networks, Bluetooth,
+ sound, printing, disks, displays, the authentication agent, the keyring,
+ portals and typefaces, with Qt programs dressed as the GTK ones.

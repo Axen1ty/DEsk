@@ -1,0 +1,14 @@
+[Desktop Entry]
+Type=Application
+Name=DEsk Experience Index
+Name[ja]=DEsk エクスペリエンス インデックス
+GenericName=System rating
+GenericName[ja]=システムの評価
+Comment=How this machine does at what the desk asks of it
+Comment[ja]=このマシンが机の求めることをどれだけこなせるか
+Keywords=benchmark;performance;score;rating;speed;
+Keywords[ja]=ベンチマーク;性能;スコア;評価;速度;
+Exec=@EXEC@
+Icon=@ICON@
+Categories=System;Monitor;
+StartupWMClass=desk-index

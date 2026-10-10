@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=DEsk: Input method
+Name[ja]=DEsk: 入力メソッド
+Comment=Typing Japanese and other languages
+Exec=desk-session-helper ime
+TryExec=desk-session-helper
+OnlyShowIn=DEsk;
+NoDisplay=true
+X-GNOME-Autostart-enabled=true

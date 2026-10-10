@@ -1,0 +1,144 @@
+#!/bin/sh
+# desk-session-helper JOB -- the parts of a desktop session DEsk does
+# not draw, each started from an autostart entry of DEsk's own
+# (session/autostart, OnlyShowIn=DEsk) with whichever free program for it
+# is installed. Nothing here is DEsk's own code; it only picks.
+#
+#   polkit    the agent that asks for a password when something needs one
+#             (mounting a disk, joining a network, the power buttons)
+#   keyring   the store programs keep passwords in (the Secret Service)
+#   ime       the input method, for typing Japanese and the like
+#   ime-kind  which input method this session wants: ibus, fcitx, or
+#             nothing (desk-session asks, before it sets things up)
+#   network   the network applet, in the tray
+#   media     memory sticks and disks: mounted when put in, a letter saying
+#             so, and a slip in the tray while there is one to take out
+#   power     a letter when the battery runs low
+set -u
+
+# An input method is started only where there is something for it to do:
+# a language typed through one (Japanese, Chinese, Korean, Vietnamese,
+# Thai), or an engine the user has set up -- IBus's list holds more than
+# keyboards. Most of the world types what is on its keys, and has no use
+# for one in the tray.
+ime_kind() {
+	case "${GTK_IM_MODULE:-}${QT_IM_MODULE:-}" in
+	*fcitx*)
+		command -v fcitx5 >/dev/null 2>&1 && { echo fcitx; return; }
+		;;
+	esac
+	want=
+	case "${LC_ALL:-${LC_CTYPE:-${LANG:-}}}" in
+	ja*|zh*|ko*|vi*|th*) want=1 ;;
+	esac
+	if command -v ibus-daemon >/dev/null 2>&1; then
+		if [ -z "$want" ] && command -v gsettings >/dev/null 2>&1 \
+			&& gsettings get org.freedesktop.ibus.general preload-engines 2>/dev/null \
+				| tr ',' '\n' | grep -q "'[^x'][^']*'\|'x[^k][^']*'"; then
+			want=1
+		fi
+		[ -n "$want" ] && echo ibus
+		return 0
+	fi
+	if [ -n "$want" ] && command -v fcitx5 >/dev/null 2>&1; then
+		echo fcitx
+	fi
+	return 0   # none wanted is an answer too, not a failure
+}
+
+first() {
+	for p in "$@"; do
+		case "$p" in
+		/*) [ -x "$p" ] && { echo "$p"; return 0; } ;;
+		*) command -v "$p" >/dev/null 2>&1 && { command -v "$p"; return 0; } ;;
+		esac
+	done
+	return 1
+}
+
+case "${1:-}" in
+polkit)
+	# A small GTK window asking for the password, as the rest of the
+	# standard set is: MATE's, Xfce's (xfce-polkit), LXDE's, GNOME's old
+	# one; KDE's and LXQt's after them. Where each distribution puts it:
+	# Debian and Ubuntu in /usr/libexec or a multiarch libexec, Arch in
+	# /usr/lib/<package>.
+	agent=$(first \
+		/usr/libexec/polkit-mate-authentication-agent-1 \
+		/usr/lib/mate-polkit/polkit-mate-authentication-agent-1 \
+		/usr/libexec/xfce-polkit \
+		/usr/lib/xfce-polkit/xfce-polkit \
+		lxpolkit \
+		/usr/lib/policykit-1-gnome/polkit-gnome-authentication-agent-1 \
+		/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 \
+		/usr/libexec/polkit-gnome-authentication-agent-1 \
+		/usr/lib/*/libexec/polkit-kde-authentication-agent-1 \
+		/usr/libexec/polkit-kde-authentication-agent-1 \
+		/usr/libexec/kf6/polkit-kde-authentication-agent-1 \
+		/usr/lib/polkit-kde-authentication-agent-1 \
+		lxqt-policykit-agent \
+		/usr/libexec/hyprpolkitagent) || exit 0
+	exec "$agent"
+	;;
+keyring)
+	command -v gnome-keyring-daemon >/dev/null 2>&1 || exit 0
+	# already unlocked at login by the display manager's PAM, if it is set
+	# up for that; started here otherwise, locked until first used
+	exec gnome-keyring-daemon --start --components=secrets,pkcs11 >/dev/null
+	;;
+ime-kind)
+	ime_kind
+	;;
+ime)
+	# the one desk-session told programs to use (its own tray item,
+	# fcitx5's, is in the tray already)
+	case "${DESK_IM:-$(ime_kind)}" in
+	fcitx)
+		command -v fcitx5 >/dev/null 2>&1 && exec fcitx5 -d
+		;;
+	ibus)
+		# One per session: a second one finds the first on the bus and
+		# goes. Its panel puts itself in the tray (a StatusNotifierItem,
+		# with the engines and the input modes in its menu) only for a
+		# desktop it takes for KDE; for any other it makes an X tray
+		# icon, which DEsk has nowhere to put. This desktop's tray is
+		# one of the same kind as KDE's.
+		# Its panel shows the candidates -- Mozc's too, which in a
+		# Wayland session gives up its own window for IBus's -- and
+		# through X where there is an X: an X window can say where it
+		# goes, so they come up under the text being written, from a
+		# Wayland program (DEsk tells IBus where its cursor is) and
+		# from an X one (XIM does); a Wayland window cannot, and DEsk
+		# puts it there itself (wm.c, ime_window_is).
+		GDK_BACKEND=x11,wayland XDG_CURRENT_DESKTOP=KDE exec ibus-daemon --daemonize --xim
+		;;
+	esac
+	;;
+network)
+	command -v nm-applet >/dev/null 2>&1 || exit 0
+	# the form that sits in a StatusNotifierItem tray, which DEsk's is
+	exec nm-applet --indicator
+	;;
+media)
+	command -v udiskie >/dev/null 2>&1 || exit 0
+	# its slip shows only while something is mounted; on Wayland it is an
+	# AppIndicator one (a StatusNotifierItem), which this tray shows, and
+	# without the indicator library udiskie goes on without a slip
+	exec udiskie --automount --notify --smart-tray
+	;;
+power)
+	# poweralertd asks UPower, and says nothing of how things stood when
+	# it started (-s); its own systemd unit waits on graphical-session.target,
+	# which nothing in a DEsk session starts. batsignal (Arch) reads the
+	# batteries itself.
+	if command -v poweralertd >/dev/null 2>&1; then
+		exec poweralertd -s
+	fi
+	command -v batsignal >/dev/null 2>&1 || exit 0
+	exec batsignal
+	;;
+*)
+	echo "usage: desk-session-helper polkit|keyring|ime|ime-kind|network|media|power" >&2
+	exit 2
+	;;
+esac

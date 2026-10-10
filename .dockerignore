@@ -1,0 +1,7 @@
+# What docker build is not sent: build directories (build, and the
+# installers' build-install and build-install-wlroots), what verify.sh
+# writes, the history and what was salvaged.
+build*
+out
+.git
+salvage

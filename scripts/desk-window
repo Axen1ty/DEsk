@@ -1,0 +1,66 @@
+#!/bin/sh
+# Run DEsk as a window inside the session you are already in, which is what
+# you want when you are looking at it rather than logging into it. For the
+# real thing -- DEsk as the session -- pick it at the login screen instead.
+set -eu
+
+size="${DESK_SIZE:-1440x900}"
+root="$(cd "$(dirname "$0")/.." && pwd)"
+
+# Prefer the build in the tree, fall back to an installed one.
+if [ -x "$root/build/desk" ]; then
+	bin="$root/build/desk"
+elif command -v desk >/dev/null 2>&1; then
+	bin="$(command -v desk)"
+else
+	msg="DEsk is not built. Run: meson compile -C $root/build"
+	if command -v zenity >/dev/null 2>&1; then
+		zenity --error --text="$msg"
+	elif command -v xmessage >/dev/null 2>&1; then
+		xmessage "$msg"
+	fi
+	printf '%s\n' "$msg" >&2
+	exit 1
+fi
+
+# Nest inside whatever is already running.
+if [ -n "${WAYLAND_DISPLAY:-}" ]; then
+	export WLR_BACKENDS=wayland
+elif [ -n "${DISPLAY:-}" ]; then
+	export WLR_BACKENDS=x11
+else
+	printf 'no session to nest in: neither WAYLAND_DISPLAY nor DISPLAY is set\n' >&2
+	exit 1
+fi
+
+# Composite on the GPU when there is one: with a render node, wlroots picks
+# GLES for itself. Without one there is nothing but pixman. The machine this
+# was first written on had no GL for wlroots; one like that which still has
+# a node has to say so: DESK_RENDERER=pixman (or gles2, to insist).
+if [ -n "${DESK_RENDERER:-}" ]; then
+	export WLR_RENDERER="$DESK_RENDERER"
+elif ! ls /dev/dri/renderD* >/dev/null 2>&1; then
+	export WLR_RENDERER=pixman
+fi
+
+if [ -z "${XDG_RUNTIME_DIR:-}" ]; then
+	XDG_RUNTIME_DIR="/run/user/$(id -u)"
+	export XDG_RUNTIME_DIR
+fi
+if [ ! -d "$XDG_RUNTIME_DIR" ]; then
+	XDG_RUNTIME_DIR="/tmp/desk-$(id -u)"
+	export XDG_RUNTIME_DIR
+	# ours alone: made now, or left from before and still a directory of
+	# ours -- not something another user put there first
+	mkdir -m 700 -p "$XDG_RUNTIME_DIR"
+	if [ -L "$XDG_RUNTIME_DIR" ] || [ "$(stat -c %u "$XDG_RUNTIME_DIR")" != "$(id -u)" ]; then
+		printf '%s is not yours: set XDG_RUNTIME_DIR\n' "$XDG_RUNTIME_DIR" >&2
+		exit 1
+	fi
+	chmod 700 "$XDG_RUNTIME_DIR"
+fi
+
+# The room is ray traced and cached on disk. The first run at a given size
+# takes about a minute; the desk paints flat until it is ready, then swaps
+# itself in. Every run after that is instant.
+exec "$bin" --size "$size" "$@"

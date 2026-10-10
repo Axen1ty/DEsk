@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=DEsk
+Name[ja]=DEsk
+Comment=Skeuomorphic Wayland desktop
+Comment[ja]=スキューモーフィックな Wayland デスクトップ
+Exec=desk-session
+TryExec=desk-session
+Type=Application
+DesktopNames=DEsk
+Keywords=wayland;compositor;desktop;desk;
+X-LightDM-DesktopName=DEsk
