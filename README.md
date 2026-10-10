@@ -432,6 +432,17 @@ Both are plain text; look them over before sending them. If the desk is stuck,
 `desk-ctl reset` from a terminal (or another VT) draws everything again
 without closing your windows.
 
+
+## How it was made
+
+DEsk was built with the help of AI. Much of the code and the documentation
+was written by Claude (Anthropic's AI model) under the author's direction:
+the author decided what DEsk should be and how it should look, tested it on
+real machines, and reviewed what went in. Reports and patches are welcome
+all the same.
+
+
+
 ## License
 
 [MIT](LICENSE)
