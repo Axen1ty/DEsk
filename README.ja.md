@@ -2360,3 +2360,14 @@ desk-preview -o console.png -s 1440x900 --console
 desk-preview --help                     # 描けるものの一覧
 meson test -C build                     # 訳の表の確かめ（scripts/check-words.py）
 ```
+
+## 作り方について
+
+DEsk は AI の助けを借りて作りました。コードと文書の多くは、作者の指示のもとで
+Claude（Anthropic の AI）が書いています。何を作り、どう見せるかは作者が決め、
+実機で試し、入れるものを確かめています。不具合の報告や修正の提案は歓迎します。
+
+
+## ライセンス
+
+[MIT](LICENSE)
