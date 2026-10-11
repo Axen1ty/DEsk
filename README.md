@@ -4,6 +4,10 @@
 
 **v0.1 (BETA)** -- the first public release. See [RELEASE-NOTES.md](RELEASE-NOTES.md).
 
+I've created a Discord server!
+You can also report bugs and submit ideas for new features here!
+link : https://discord.gg/xR5f7Xs49
+
 > **DEsk** is **D**esktop **E**nvironment and **desk** in one word -- a
 > name that came from the Reddit community. It used to be called DeskWM:
 > the commands are now `desk`, `desk-session`, `desk-settings` and so on, and
@@ -431,6 +435,7 @@ what happened, and attach:
 Both are plain text; look them over before sending them. If the desk is stuck,
 `desk-ctl reset` from a terminal (or another VT) draws everything again
 without closing your windows.
+
 
 
 ## How it was made
