@@ -16,6 +16,9 @@ iOS 6 のころのように画面の中の物を本物そっくりに描く考�
 
 **v0.1 (BETA)** — 最初の公開版です。中身と分かっている制限は [RELEASE-NOTES.ja.md](RELEASE-NOTES.ja.md) に。
 
+discordのサーバーを作りました！是非参加してください。
+リンク： https://discord.gg/xR5f7Xs49
+
 ![机：紙に載った二つのプログラム、時計、左奥の Control Panel、右奥のポスト](docs/screenshots/desk.jpg)
 
 > **状態：ベータ。** 作者の機械で毎日使っていて、念入りに確かめてもいますが（[docs/ARCHITECTURE.ja.md](docs/ARCHITECTURE.ja.md) の 9 節）、
