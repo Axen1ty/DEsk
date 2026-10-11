@@ -1,8 +1,17 @@
 [English](RELEASE-NOTES.md) | **日本語**
 
-# DEsk v0.1 (BETA)
+# DEsk v0.1.1 (BETA)
 
-DEsk の最初の公開版です。DEsk は、iOS 6 のころのような**リアルなスキューモーフィズム**で作った、デスクトップが机になっている Linux 向けの Wayland デスクトップです。窓は紙、ドックは引き出し、プログラムは本棚のバインダーに、通知はポストに届き、一つの電気スタンドがレイトレースの部屋を照らします。
+## v0.1 からの変更
+
+- **直したこと：カレンダーやメモ帳を開くと机が止まっていた**（GPU で描く画面で）。GPU の画面では、すでに渡した絵の大きさを読み直していて、画面全体の大きさで置いていました。
+- **入れ方を簡単に**：README の一番上に、システムごとに一行（`sudo sh scripts/install_debian.sh`、`install_ubuntu.sh`、`install_arch.sh`）。各インストーラが自分で `SHA256SUMS` を照合するようにしました。
+
+更新は、新しいリリースを展開して同じ行をもう一度実行するだけです。設定は残ります。
+
+## DEsk について
+
+DEsk は、iOS 6 のころのような**リアルなスキューモーフィズム**で作った、デスクトップが机になっている Linux 向けの Wayland デスクトップです。窓は紙、ドックは引き出し、プログラムは本棚のバインダーに、通知はポストに届き、一つの電気スタンドがレイトレースの部屋を照らします。
 
 ## 入っているもの
 
@@ -18,13 +27,15 @@ DEsk の最初の公開版です。DEsk は、iOS 6 のころのような**リ�
 
 ## インストール
 
+リリース（`DEsk-v0.1.1-BETA.zip` か `.tar.gz`）を展開してそのフォルダに入り、使っているシステムの行を実行します。
+
 ```sh
-tar xf DEsk-v0.1-BETA.tar.gz
-cd DEsk-v0.1-BETA
-scripts/install_session.sh
+sudo sh scripts/install_debian.sh    # Debian 13
+sudo sh scripts/install_ubuntu.sh    # Ubuntu 24.04 / 26.04、Linux Mint、Pop!_OS
+sudo sh scripts/install_arch.sh      # Arch Linux、EndeavourOS、Manjaro
 ```
 
-ログアウトして、ログイン画面で **DEsk** を選びます。詳しいこと、オプション（`--no-apps`、`--bare`、`--prefix`）、自分でビルドする方法は README にあります。あとで更新するときは、新しいコピーから同じようにインストーラを実行します。設定と焼いた部屋は残ります。
+ログアウトして、ログイン画面で **DEsk** を選びます。詳しいこと、オプション（`--yes`、`--no-apps`、`--bare`、`--prefix`）、自分でビルドする方法は README にあります。あとで更新するときは、新しいコピーから同じ行を実行します。設定と焼いた部屋は残ります。
 
 ある画面の大きさで初めて起動するときは部屋を焼きます。GPU なら数秒、プロセッサではもっとかかります（机の上の手紙がそう言います）。そのあとはディスクに残ります。
 
@@ -45,10 +56,10 @@ scripts/install_session.sh
 
 ## コピーの確かめ方
 
-フォルダには `SHA256SUMS` が入っていて、インストーラがビルドの前に確かめます。アーカイブには `DEsk-v0.1-BETA.tar.gz.sha256` が付いています。
+フォルダには `SHA256SUMS` が入っていて、インストーラがビルドの前に確かめます。アーカイブには `DEsk-v0.1.1-BETA.tar.gz.sha256` が付いています。
 
 ```sh
-sha256sum -c DEsk-v0.1-BETA.tar.gz.sha256
+sha256sum -c DEsk-v0.1.1-BETA.tar.gz.sha256
 ```
 
 ## ライセンス

@@ -64,6 +64,21 @@ die() { printf 'install_arch.sh: %s\n' "$*" >&2; exit 1; }
 if ! grep -q "^project('desk'" "$root/meson.build" 2>/dev/null; then
 	die "$root does not look like DEsk's source folder (no meson.build for it)"
 fi
+# A copy made for passing round carries SHA256SUMS, and every file is
+# checked against it first: a copy damaged on its way (a stick pulled out
+# too soon) stops here and says which files, not at some line of the build
+# that says nothing of why. install_session.sh checks it before it runs
+# this, and says so (DESK_SUMS_CHECKED). A git checkout has none.
+if [ -z "${DESK_SUMS_CHECKED:-}" ] && [ -f "$root/SHA256SUMS" ] \
+	&& command -v sha256sum >/dev/null 2>&1; then
+	if ! damaged=$(cd "$root" && sha256sum --quiet -c SHA256SUMS 2>&1); then
+		printf '%s\n' "this copy of DEsk is damaged -- these files are not what they were" \
+			"when it was made:" >&2
+		printf '%s\n' "$damaged" | sed 's/^/  /' >&2
+		die "copy the folder again; if a fresh copy is damaged too, suspect the machine's memory or disk (memtest86+)"
+	fi
+	say "DEsk: every file of this copy checked against SHA256SUMS."
+fi
 command -v pacman >/dev/null 2>&1 \
 	|| die "there is no pacman here, so this is not Arch (install_session.sh picks the right one)"
 case "$wlr" in

@@ -1,8 +1,22 @@
 **English** | [日本語](RELEASE-NOTES.ja.md)
 
-# DEsk v0.1 (BETA)
+# DEsk v0.1.1 (BETA)
 
-The first public release of DEsk, a Wayland desktop for Linux in realistic
+## What changed since v0.1
+
+- **Fixed: opening the calendar or the memo pad stopped the desk** on
+  screens drawn by the GPU. On a GPU screen the desk read the size of a
+  picture it had already handed over, and laid it for the whole screen.
+- **Simpler install**: one line per system, `sudo sh scripts/install_debian.sh`
+  (or `install_ubuntu.sh`, `install_arch.sh`), at the top of the README. Each
+  installer now checks the copy against `SHA256SUMS` itself.
+
+To update, unpack the new release and run the same line again; your
+settings are kept.
+
+## About DEsk
+
+DEsk is a Wayland desktop for Linux in realistic
 skeuomorphism -- the kind iOS 6 had -- in which the desktop is a desk:
 windows are sheets of paper, the dock is a drawer, programs are filed in
 binders on a bookcase, notifications arrive in a post box, and one desk lamp
@@ -41,15 +55,18 @@ lights a ray-traced room.
 
 ## Installing
 
+Unpack the release (`DEsk-v0.1.1-BETA.zip` or `.tar.gz`), go into its folder
+and run the line for your system:
+
 ```sh
-tar xf DEsk-v0.1-BETA.tar.gz
-cd DEsk-v0.1-BETA
-scripts/install_session.sh
+sudo sh scripts/install_debian.sh    # Debian 13
+sudo sh scripts/install_ubuntu.sh    # Ubuntu 24.04 / 26.04, Linux Mint, Pop!_OS
+sudo sh scripts/install_arch.sh      # Arch Linux, EndeavourOS, Manjaro
 ```
 
 Then log out and choose **DEsk** on the login screen. The README has the
-details, the options (`--no-apps`, `--bare`, `--prefix`) and how to build it
-yourself. To update later, run the installer from the new copy the same way;
+details, the options (`--yes`, `--no-apps`, `--bare`, `--prefix`) and how to
+build it yourself. To update later, run the same line from the new copy;
 your settings and the traced room are kept.
 
 The first start at a screen size traces the room: a few seconds on a GPU,
@@ -95,10 +112,10 @@ rendered in all seven languages; the translation tables checked by
 ## Checking your copy
 
 The folder carries `SHA256SUMS`, which the installer checks before it builds.
-The archive comes with `DEsk-v0.1-BETA.tar.gz.sha256`:
+The archive comes with `DEsk-v0.1.1-BETA.tar.gz.sha256`:
 
 ```sh
-sha256sum -c DEsk-v0.1-BETA.tar.gz.sha256
+sha256sum -c DEsk-v0.1.1-BETA.tar.gz.sha256
 ```
 
 ## License

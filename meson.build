@@ -1,5 +1,5 @@
 project('desk', 'c',
-  version: '0.1.0',
+  version: '0.1.1',
   default_options: [
     'buildtype=debugoptimized',
     'c_std=c11',
@@ -15,7 +15,7 @@ add_project_arguments(
 )
 # what this release is called, as --version and the session log say it,
 # and its number, as the notification server tells programs that ask
-add_project_arguments('-DDESK_RELEASE="DEsk v0.1 (BETA)"',
+add_project_arguments('-DDESK_RELEASE="DEsk v0.1.1 (BETA)"',
   '-DDESK_VERSION="@0@"'.format(meson.project_version()), language: 'c')
 # a variable initialised from itself (x = x) is uninitialised, and in C
 # -Wall does not say so: a keysym once read as garbage that way

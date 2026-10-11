@@ -14,7 +14,7 @@ iOS 6 のころのように画面の中の物を本物そっくりに描く考�
 部屋はレイトレースで描かれ、一つの電気スタンドがそのすべてを照らします。
 フラットな懐古スキンではなく、ウォルナットの木目・引き出しのフェルト・紙の繊維・レザーのステッチをピクセル単位で組んでいます。
 
-**v0.1 (BETA)** — 最初の公開版です。中身と分かっている制限は [RELEASE-NOTES.ja.md](RELEASE-NOTES.ja.md) に。
+**v0.1.1 (BETA)** — 最初の公開版 v0.1 の修正版です。直したこと・中身・分かっている制限は [RELEASE-NOTES.ja.md](RELEASE-NOTES.ja.md) に。
 
 discordのサーバーを作りました！是非参加してください。
 リンク： https://discord.gg/xR5f7Xs49
@@ -24,6 +24,37 @@ discordのサーバーを作りました！是非参加してください。
 > **状態：ベータ。** 作者の機械で毎日使っていて、念入りに確かめてもいますが（[docs/ARCHITECTURE.ja.md](docs/ARCHITECTURE.ja.md) の 9 節）、
 > 最初の公開版です。粗いところはあり、これから変わるところもあります。設定とデータは先の版へ引き継ぎます。
 
+## インストール
+
+[Releases のページ](https://github.com/fyzugx/DEsk/releases)から最新の版を落として展開し（このリポジトリを clone しても同じです）、そのフォルダで、使っているシステムの行を実行します。
+
+**Debian 13**
+
+```sh
+sudo sh scripts/install_debian.sh
+```
+
+**Ubuntu 24.04 / 26.04**（Linux Mint、Pop!_OS も）
+
+```sh
+sudo sh scripts/install_ubuntu.sh
+```
+
+**Arch Linux**（EndeavourOS、Manjaro も）
+
+```sh
+sudo sh scripts/install_arch.sh
+```
+
+終わったらログアウトして、ログイン画面で **DEsk** を選びます。
+
+- 入れるものを見せて、先に聞きます。`--yes` で、すすめる答えのまま進みます。`--no-apps` なら、おすすめのプログラムは入れず DEsk だけにします。
+- 最初のログインで一度だけ部屋を描きます。GPU なら数秒、無ければもう少しかかります。次からはすぐに始まります。
+- 更新は、新しい版を落として同じ行をもう一度実行するだけです。設定は残ります。
+- うまくいかないときは、下の「困ったとき」と「不具合を知らせるとき」へ。
+
+オプションや、自分でビルドする方法、窓の中で動かす方法は、下の「インストール（Wayland セッション）」と「ビルド」にあります。
+
 **文書**
 
 - [docs/ARCHITECTURE.ja.md](docs/ARCHITECTURE.ja.md) — DEsk の組み立て：プログラム、コンポジタ、レイトレースの部屋、スレッド、ファイル
@@ -32,7 +63,7 @@ discordのサーバーを作りました！是非参加してください。
 - [docs/design.md](docs/design.md) — 開発の記録のすべて
 - 画面写真は [docs/screenshots/](docs/screenshots/) に
 
-この README は長いので、まずは「インストール（Wayland セッション）」「キー」「困ったとき」から読むのがおすすめです。
+この README は長いので、まずは上の「インストール」、それから「キー」「困ったとき」から読むのがおすすめです。
 
 ## 見た目 — 本物がそこにあるように
 
@@ -822,8 +853,8 @@ Shell Settings の DESK のページの **Graphics**（`shell.conf` の `graphic
 遅い機械は、グラフィックだけで決めると High になり、紙を折るたびに 30 fps に落ちて
 いました。i3-6100U の速さに絞ると Medium、2010 年ごろの機械なら Low になります）。選んだ
 段階は機械全体の既定として `/etc/xdg/desk/shell.conf` に書き、各ユーザーが Shell Settings で
-変えた値（`~/.config/desk/shell.conf`）がそれより優先します。`DESK_GRAPHICS=low
-scripts/install_session.sh` のように指定すれば、調べずにその段階にします。調べられない
+変えた値（`~/.config/desk/shell.conf`）がそれより優先します。`sudo DESK_GRAPHICS=low
+sh scripts/install_debian.sh` のように指定すれば、調べずにその段階にします。調べられない
 ときの既定は **High**（今までどおりの机）です。
 切り替えるとその場で効き、部屋はその段階で焼き直します（焼き上がるまでは前の部屋の
 まま使えます。段階ごとにキャッシュが残るので、戻すときは数秒）。
@@ -913,10 +944,10 @@ DEsk は机を描きます。机の上でする仕事のほうは、**すでに�
 ### 一式を入れる
 
 ```sh
-scripts/install_session.sh            # この機械の配布を見分けて、DEsk と一式を入れる
-scripts/install-desktop.sh            # プログラムだけ（入れるものを見せて、聞いてから）
-scripts/install-desktop.sh --extras   # オフィス・メールなども
-scripts/install-desktop.sh --dry-run  # 見せるだけ
+sudo sh scripts/install_debian.sh     # DEsk と一式（install_ubuntu.sh、install_arch.sh も同じ）
+sh scripts/install-desktop.sh         # プログラムだけ（入れるものを見せて、聞いてから sudo）
+sh scripts/install-desktop.sh --extras   # オフィス・メールなども
+sh scripts/install-desktop.sh --dry-run  # 見せるだけ
 ```
 
 `install-desktop.sh` は apt（Debian・Ubuntu）・dnf（Fedora）・pacman（Arch）・
@@ -1156,19 +1187,20 @@ Shell Settings の「Camera bounce」（カメラの揺れ）で低く、また�
 ## インストール（Wayland セッション）
 
 Linux でシステムに入れて、GDM / SDDM / LightDM のログイン画面から選びます。
-リポジトリを手に入れたフォルダで、自分のユーザーのまま（要るときに sudo を聞きます）:
+手に入れたフォルダで、使っているシステムのインストーラを実行します（上の「インストール」）。
+三つとも同じオプションです:
 
 ```sh
-scripts/install_session.sh            # 配布を見分けて、その配布のインストーラを走らせる
-scripts/install_session.sh --yes      # 聞かずに、すすめる答えで
-scripts/install_session.sh --no-apps  # DEsk と要るもの、Shell Settings が開くプログラムだけ
-scripts/install_session.sh --bare     # DEsk と要るものだけ（プログラムは何も入れない。コンテナ用）
-scripts/install_session.sh --prefix /opt/desk   # 入れる場所（既定は /usr/local）
+sudo sh scripts/install_debian.sh            # install_ubuntu.sh、install_arch.sh も同じ
+sudo sh scripts/install_debian.sh --yes      # 聞かずに、すすめる答えで
+sudo sh scripts/install_debian.sh --no-apps  # DEsk と要るもの、Shell Settings が開くプログラムだけ
+sudo sh scripts/install_debian.sh --bare     # DEsk と要るものだけ（プログラムは何も入れない。コンテナ用）
+sudo sh scripts/install_debian.sh --prefix /opt/desk   # 入れる場所（既定は /usr/local）
 ```
 
-`install_session.sh` は `/etc/os-release` を見て、次のどれかに渡します（同じ
-オプション）。Linux Mint・Pop!_OS は Ubuntu、EndeavourOS・Manjaro は Arch として
-扱います。
+`sh scripts/install_session.sh` は `/etc/os-release` を見て、次のどれかに自分で渡し
+（同じオプション）、言ったことを `~/.local/state/desk/install.log` にも残します。
+Linux Mint・Pop!_OS は Ubuntu、EndeavourOS・Manjaro は Arch として扱います。
 
 | 配布 | スクリプト | wlroots 0.18 |
 | --- | --- | --- |
@@ -1188,16 +1220,17 @@ scripts/install_session.sh --prefix /opt/desk   # 入れる場所（既定は /u
 何を開くか（無ければ `MISSING` と、それを入れるパッケージの名前）を一覧にします。何度
 走らせても同じ結果で、2 回目からは数秒です。
 
-**更新**は、新しいフォルダを手に入れて同じように `scripts/install_session.sh` を
-走らせるだけです（入っていれば「this updates it」と出ます）。入っているものは入れ替わり、
+**更新**は、新しいフォルダを手に入れて同じインストーラを
+もう一度走らせるだけです（入っていれば「this updates it」と出ます）。入っているものは入れ替わり、
 前回のビルド（`build-install`）は作り直して使います。作り直せないとき（別の版の
 Meson のもの、以前 sudo で走らせて一部が root のもの）は、消して作り直します。
 設定（`~/.config/desk`）と焼いた部屋はそのまま残り、部屋は見た目が変わった更新の
-ときだけ焼き直します。インストーラが言ったことは全部 `~/.local/state/desk/install.log`
-（最後の 1 回分）にも残るので、途中で止まったときはそれを見るか送ってください。
+ときだけ焼き直します。途中で止まったときは、端末に出た最後の数行を見るか送ってください
+（`install_session.sh` から走らせたときは、全部が `~/.local/state/desk/install.log`
+（最後の 1 回分）にも残ります）。
 
 配るためのフォルダには `SHA256SUMS`（全ファイルの SHA-256）が入っていて、
-`install_session.sh` は**ビルドの前に全ファイルを照合**します。運ぶ途中で壊れたコピー
+インストーラは**ビルドの前に全ファイルを照合**します。運ぶ途中で壊れたコピー
 （USB メモリを取り外し前に抜いた、など）は、どのファイルが違うかを言って止まります。
 新しく取り直したコピーまで壊れているときは、その機械のメモリかディスクを疑ってください
 （メモリは memtest86+ で調べられます）。git で取ったものには無いので照合しません。
@@ -2272,7 +2305,7 @@ DEsk の机の部品（引き出し・本棚・Control Panel・ポスト・カ�
 どの版か（`desk --version`）、どの Linux か、何をして何が起きたかと一緒に、次を添えてください。
 
 - `~/.local/state/desk/session.log`（ひとつ前のセッションのことなら `session.log.old` も）— DEsk が動きながら言ったこと
-- インストーラが止まったなら `~/.local/state/desk/install.log`
+- インストーラが止まったなら、端末に出た最後の数行（`install_session.sh` から走らせたときは `~/.local/state/desk/install.log`）
 
 どちらもただのテキストです。送る前に中身を見てください。
 
@@ -2369,7 +2402,6 @@ meson test -C build                     # 訳の表の確かめ（scripts/check-
 DEsk は AI の助けを借りて作りました。コードと文書の多くは、作者の指示のもとで
 Claude（Anthropic の AI）が書いています。何を作り、どう見せるかは作者が決め、
 実機で試し、入れるものを確かめています。不具合の報告や修正の提案は歓迎します。
-
 
 ## ライセンス
 

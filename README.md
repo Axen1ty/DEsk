@@ -2,7 +2,7 @@
 
 # DEsk
 
-**v0.1 (BETA)** -- the first public release. See [RELEASE-NOTES.md](RELEASE-NOTES.md).
+**v0.1.1 (BETA)** -- fixes to v0.1, the first public release. See [RELEASE-NOTES.md](RELEASE-NOTES.md).
 
 I've created a Discord server!
 You can also report bugs and submit ideas for new features here!
@@ -29,6 +29,43 @@ back of the desk. The room is ray-traced, and one desk lamp lights all of it.
 > been checked carefully (see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md),
 > section 9), but this is its first release: expect rough edges, and expect
 > things to change. Your settings and data will be carried forward.
+
+## Install
+
+Download the latest release from the
+[Releases page](https://github.com/fyzugx/DEsk/releases) and unpack it (or
+clone this repository). Then, in its folder, run the line for your system:
+
+**Debian 13**
+
+```sh
+sudo sh scripts/install_debian.sh
+```
+
+**Ubuntu 24.04 / 26.04** (and Linux Mint, Pop!_OS)
+
+```sh
+sudo sh scripts/install_ubuntu.sh
+```
+
+**Arch Linux** (and EndeavourOS, Manjaro)
+
+```sh
+sudo sh scripts/install_arch.sh
+```
+
+Then log out and choose **DEsk** on the login screen.
+
+- It shows what it will install and asks first. `--yes` takes the suggested
+  answers; `--no-apps` installs DEsk without the recommended programs.
+- The first login draws the room once: a few seconds on a GPU, longer
+  without one. After that it starts at once.
+- To update, get the new release and run the same line again. Your settings
+  are kept.
+- Something went wrong? See [Reporting a problem](#reporting-a-problem).
+
+More options, building by hand and running DEsk in a window are under
+[Build](#build) and [Run](#run).
 
 ## What's on the desk
 
@@ -151,7 +188,7 @@ browser, a file manager and a text editor. The drawer's things and
   settings, borrowed programs, sounds, the room, things on the desk.
 - [docs/CONFIGURATION.md](docs/CONFIGURATION.md) -- every setting, file and
   environment variable.
-- [RELEASE-NOTES.md](RELEASE-NOTES.md) -- what is in v0.1 and what is known
+- [RELEASE-NOTES.md](RELEASE-NOTES.md) -- what is in v0.1.1 and what is known
   not to work yet.
 - [docs/design.md](docs/design.md) -- the full development log (in Japanese).
 
@@ -175,9 +212,9 @@ appearance dialogs (which need xfsettingsd, and xfsettingsd overwrites
 GSettings with Xfce's defaults as it starts) are not used.
 
 ```sh
-scripts/install_session.sh            # DEsk and the whole set, for this distribution
-scripts/install-desktop.sh            # only the programs (shows them, then asks)
-scripts/install-desktop.sh --extras   # and the office suite, mail...
+sudo sh scripts/install_debian.sh     # DEsk and the whole set (install_ubuntu.sh, install_arch.sh)
+sh scripts/install-desktop.sh         # only the programs (shows them, then asks for sudo)
+sh scripts/install-desktop.sh --extras   # and the office suite, mail...
 ```
 
 `install-desktop.sh` works with apt, dnf, pacman and zypper. On Debian and
@@ -358,16 +395,19 @@ Inside your current session, as a window:
 ./build/desk -s foot
 ```
 
-As a session of its own, picked from the login screen (GDM, SDDM, LightDM):
+As a session of its own, picked from the login screen (GDM, SDDM, LightDM),
+use the installer for your system ([Install](#install)). All three take the
+same options:
 
 ```sh
-scripts/install_session.sh              # detects Debian 13, Ubuntu 24.04/26.04 or Arch
-scripts/install_session.sh --no-apps    # DEsk, what it needs and what Shell Settings opens
-scripts/install_session.sh --bare       # DEsk and what it needs, no programs (containers)
-scripts/install_session.sh --prefix /opt/desk
+sudo sh scripts/install_debian.sh              # or install_ubuntu.sh, install_arch.sh
+sudo sh scripts/install_debian.sh --no-apps    # DEsk, what it needs and what Shell Settings opens
+sudo sh scripts/install_debian.sh --bare       # DEsk and what it needs, no programs (containers)
+sudo sh scripts/install_debian.sh --prefix /opt/desk
 ```
 
-It runs `scripts/install_debian.sh`, `install_ubuntu.sh` or `install_arch.sh`
+`sh scripts/install_session.sh` picks the right one by itself and keeps what
+it says in `~/.local/state/desk/install.log`. Each installer does the same
 (derivatives such as Mint, Pop!_OS, EndeavourOS and Manjaro are recognised):
 packages, a release build in `build-install`, the PAM file, the login entry,
 and the removal of what the old name, DeskWM, left behind (after asking).
@@ -377,7 +417,7 @@ which package would bring it).
 On other distributions, install the requirements and run `scripts/install.sh`.
 Or from a TTY: `desk-session`.
 
-To update, get the new copy and run `scripts/install_session.sh` again the same
+To update, get the new copy and run the installer again the same
 way ("this updates it", it says): what is installed is replaced, the last build
 is reused (or made afresh when it cannot be), and your settings and the traced
 room stay. All the installer says is also kept in
@@ -430,13 +470,13 @@ what happened, and attach:
 
 - `~/.local/state/desk/session.log` (and `session.log.old` if the problem was
   in the session before) -- what DEsk said as it ran;
-- `~/.local/state/desk/install.log` if the installer stopped.
+- if the installer stopped, its last lines from the terminal (or
+  `~/.local/state/desk/install.log` when it was run through
+  `install_session.sh`).
 
 Both are plain text; look them over before sending them. If the desk is stuck,
 `desk-ctl reset` from a terminal (or another VT) draws everything again
 without closing your windows.
-
-
 
 ## How it was made
 
@@ -445,8 +485,6 @@ was written by Claude (Anthropic's AI model) under the author's direction:
 the author decided what DEsk should be and how it should look, tested it on
 real machines, and reviewed what went in. Reports and patches are welcome
 all the same.
-
-
 
 ## License
 

@@ -117,6 +117,7 @@
 #include <wlr/types/wlr_viewporter.h>
 #include <wlr/types/wlr_presentation_time.h>
 #include <wlr/types/wlr_single_pixel_buffer_v1.h>
+#include <wlr/util/addon.h>
 #include <wlr/util/box.h>
 #include <wlr/util/edges.h>
 #include <wlr/util/log.h>
@@ -1389,6 +1390,69 @@ static double span_inside(double start, double len, double end)
 	return len;
 }
 
+/* What a node's picture measures, kept beside the node. Once a picture is
+ * on the GPU the scene lets go of it -- b->buffer is NULL from then on, on
+ * a GLES2 screen, though never on a pixman one, which reads the picture
+ * every time -- so its size is written down as it is handed over
+ * (scene_new, scene_swap) and read back by whatever lays a box over it.
+ * Read off b->buffer instead, a box went on being laid for the size of the
+ * screen over a picture a third of it, and wlroots stopped the desk. */
+struct pic_size {
+	struct wlr_addon addon;
+	int w, h;
+};
+
+static void pic_size_destroy(struct wlr_addon *addon)
+{
+	struct pic_size *p = wl_container_of(addon, p, addon);
+	wlr_addon_finish(addon);
+	free(p);
+}
+
+static const struct wlr_addon_interface PIC_SIZE = {
+	.name = "desk-picture-size",
+	.destroy = pic_size_destroy,
+};
+
+static void pic_size_keep(struct wlr_scene_buffer *b, const struct wlr_buffer *buffer)
+{
+	if (!buffer) {
+		return;
+	}
+	struct wlr_addon *a = wlr_addon_find(&b->node.addons, b, &PIC_SIZE);
+	struct pic_size *p;
+	if (a) {
+		p = wl_container_of(a, p, addon);
+	} else {
+		p = calloc(1, sizeof *p);
+		if (!p) {
+			return;
+		}
+		wlr_addon_init(&p->addon, &b->node.addons, b, &PIC_SIZE);
+	}
+	p->w = buffer->width;
+	p->h = buffer->height;
+}
+
+/* The size of b's picture, whether or not the scene still holds it; false
+ * if it has none. */
+static bool scene_pic_size(struct wlr_scene_buffer *b, int *w, int *h)
+{
+	if (b->buffer) {
+		*w = b->buffer->width;
+		*h = b->buffer->height;
+		return true;
+	}
+	struct wlr_addon *a = wlr_addon_find(&b->node.addons, b, &PIC_SIZE);
+	if (!a) {
+		return false;
+	}
+	struct pic_size *p = wl_container_of(a, p, addon);
+	*w = p->w;
+	*h = p->h;
+	return true;
+}
+
 /* Show src of b's picture (NULL: all of it). Every source box goes through
  * here and is kept inside the picture to the last bit: wlroots will not
  * draw one that reaches past its picture's edge by any amount, and a box
@@ -1396,7 +1460,8 @@ static double span_inside(double start, double len, double end)
  * -- can come to 160.00000000000003 of a picture 160 wide. */
 static void scene_source(struct wlr_scene_buffer *b, const struct wlr_fbox *src)
 {
-	if (!src || wlr_fbox_empty(src) || !b->buffer) {
+	int pw, ph;
+	if (!src || wlr_fbox_empty(src) || !scene_pic_size(b, &pw, &ph)) {
 		wlr_scene_buffer_set_source_box(b, src);
 		return;
 	}
@@ -1414,8 +1479,8 @@ static void scene_source(struct wlr_scene_buffer *b, const struct wlr_fbox *src)
 		box.height += box.y;
 		box.y = 0.0;
 	}
-	box.width = span_inside(box.x, box.width, b->buffer->width);
-	box.height = span_inside(box.y, box.height, b->buffer->height);
+	box.width = span_inside(box.x, box.width, pw);
+	box.height = span_inside(box.y, box.height, ph);
 	wlr_scene_buffer_set_source_box(b, &box);
 }
 
@@ -1424,10 +1489,22 @@ static void scene_source(struct wlr_scene_buffer *b, const struct wlr_fbox *src)
 static void scene_swap(struct wlr_scene_buffer *b, struct wlr_buffer *buffer)
 {
 	wlr_scene_buffer_set_buffer(b, buffer);
+	pic_size_keep(b, buffer);
 	if (!wlr_fbox_empty(&b->src_box)) {
 		struct wlr_fbox keep = b->src_box;
 		scene_source(b, &keep);
 	}
+}
+
+/* A node for a picture of ours, its size kept (pic_size_keep). */
+static struct wlr_scene_buffer *scene_new(struct wlr_scene_tree *parent,
+	struct wlr_buffer *buffer)
+{
+	struct wlr_scene_buffer *b = wlr_scene_buffer_create(parent, buffer);
+	if (b) {
+		pic_size_keep(b, buffer);
+	}
+	return b;
 }
 
 static void scene_put(struct wlr_scene_buffer **slot, struct wlr_scene_tree *parent,
@@ -1436,7 +1513,7 @@ static void scene_put(struct wlr_scene_buffer **slot, struct wlr_scene_tree *par
 	cairo_surface_flush(buffer->surface);
 	prof_upload(buffer->base.width, buffer->base.height);
 	if (*slot == NULL) {
-		*slot = wlr_scene_buffer_create(parent, &buffer->base);
+		*slot = scene_new(parent, &buffer->base);
 	} else {
 		scene_swap(*slot, &buffer->base);
 	}
@@ -2639,8 +2716,8 @@ static void film_ensure_body(struct desk_server *server, int which,
 	server->film_frames[which] = frames;
 	server->film_fw[which] = fw;
 	server->film_fh[which] = fh;
-	server->film_a[which] = wlr_scene_buffer_create(tree, &buf->base);
-	server->film_b[which] = wlr_scene_buffer_create(tree, &buf->base);
+	server->film_a[which] = scene_new(tree, &buf->base);
+	server->film_b[which] = scene_new(tree, &buf->base);
 	wlr_buffer_drop(&buf->base);
 	wlr_scene_node_set_enabled(&server->film_a[which]->node, false);
 	wlr_scene_node_set_enabled(&server->film_b[which]->node, false);
@@ -2920,7 +2997,7 @@ static void book_still_put(struct desk_server *server, uint64_t key, bool force,
 	cairo_surface_flush(b->surface);
 	prof_upload(b->base.width, b->base.height);
 	if (!sp->node) {
-		sp->node = wlr_scene_buffer_create(server->sh_layer[SH_BINDER], &b->base);
+		sp->node = scene_new(server->sh_layer[SH_BINDER], &b->base);
 	} else {
 		scene_swap(sp->node, &b->base);
 	}
@@ -4446,9 +4523,9 @@ static double step_in_place(struct desk_server *server, double t, double zx, dou
 		if (!bk[i]) {
 			continue;
 		}
-		const struct wlr_buffer *pic = bk[i]->buffer;
-		struct wlr_fbox all = { 0.0, 0.0, pic ? (double)pic->width : (double)w,
-			pic ? (double)pic->height : (double)h };
+		int pw = w, ph = h;
+		scene_pic_size(bk[i], &pw, &ph);
+		struct wlr_fbox all = { 0.0, 0.0, (double)pw, (double)ph };
 		desk_screen_lay(server, bk[i], all, (int)lround(zx - zx * z), (int)lround(zy - zy * z),
 			(int)ceil(w * z), (int)ceil(h * z), 0, 0);
 		wlr_scene_node_set_enabled(&bk[i]->node, t > 0.001);
@@ -4605,11 +4682,12 @@ static void paint_calendar(struct desk_server *server)
 		if (sp->node) {
 			wlr_scene_node_raise_to_top(&sp->node->node);
 		}
-		if (sp->node && sp->node->buffer) {
+		int bw, bh;
+		if (sp->node && scene_pic_size(sp->node, &bw, &bh)) {
 			int ow, oh;
 			desk_overlay_size(w, h, &ow, &oh);
-			server->cal_nat_w = (double)sp->node->buffer->width * w / ow;
-			server->cal_nat_h = (double)sp->node->buffer->height * h / oh;
+			server->cal_nat_w = (double)bw * w / ow;
+			server->cal_nat_h = (double)bh * h / oh;
 		}
 	}
 	cal_place(server);
@@ -5117,11 +5195,12 @@ static void paint_memo(struct desk_server *server)
 		if (sp->node) {
 			wlr_scene_node_raise_to_top(&sp->node->node);
 		}
-		if (sp->node && sp->node->buffer) {
+		int bw, bh;
+		if (sp->node && scene_pic_size(sp->node, &bw, &bh)) {
 			int ow, oh;
 			desk_overlay_size(w, h, &ow, &oh);
-			server->memo_nat_w = (double)sp->node->buffer->width * w / ow;
-			server->memo_nat_h = (double)sp->node->buffer->height * h / oh;
+			server->memo_nat_w = (double)bw * w / ow;
+			server->memo_nat_h = (double)bh * h / oh;
 		}
 	}
 	memo_place(server);

@@ -101,6 +101,9 @@ if [ -f "$top/SHA256SUMS" ] && command -v sha256sum >/dev/null 2>&1; then
 		exit 1
 	fi
 	echo "DEsk: every file of this copy checked against SHA256SUMS."
+	# (and the installer it runs need not check them again)
+	DESK_SUMS_CHECKED=1
+	export DESK_SUMS_CHECKED
 fi
 
 # Everything the installer says is kept as well as shown

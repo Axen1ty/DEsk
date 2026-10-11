@@ -164,7 +164,10 @@ cheap. Every source box goes through `scene_source`, which keeps it inside
 its picture to the last bit (wlroots asserts on a box that reaches past the
 picture, and one worked out in floating point can by a rounding error), and
 a node is given a new picture through `scene_swap`, which does the same for
-the box it had.
+the box it had. A picture's size is kept beside its node (`scene_new`,
+`pic_size_keep`, read with `scene_pic_size`): on a GLES2 screen the scene
+lets go of the picture (`buffer` becomes NULL) once it is on the GPU, so
+nothing may read the size off `buffer`.
 
 ### 4.3 A frame
 

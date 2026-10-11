@@ -944,10 +944,21 @@ All Apps でバインダーを開くと、アプリの紙が多い棚ほど極�
 - **README の書き出し**（ユーザーの指示：「iOS 6 風」が主に見えるので、iOS 6 のようなリアルなスキューモーフィズムという書き方に）：日本語は「**リアルなスキューモーフィズム**で作った Linux 向けの Wayland デスクトップ」を主にし、iOS 6 は「画面の中の物を本物そっくりに描く考え方」の例えとして添える。英語の README とリリースノート（英・日）の書き出しも同じ形に揃え、日本語にも英語と同じ「窓は紙、ドックは引き出し…」の段落を足した。
 - **README の本文も同じ書き方に**：「見た目」の節を「本物がそこにあるように」とし、iOS 6 のリアルなスキューモーフィズムを例えに、物が本物に見えることを主にした前書きと、物の名前から始まる箇条に。英語の「What's on the desk」にも同じ前書き。
 - **引き出しのドライバーは Shell Settings**（ユーザーの指示）：クリックで Control Panel へ向き直る代わりに `settings_open`（Shell Settings のウィンドウが机に出て、引き出しは閉まる）。名札も「Shell Settings」（訳は既存の行）。`drawer` ファイルの `panel` という語はそのまま（前の版のファイルも読める）。抜けない（元の場所に戻る）のも同じ。入れ子で、名札とクリックで Shell Settings が開くことを確認。
+- **インストールはディストリごとに一行**（Reddit の報告：インストーラに手こずった、という声。ユーザーの指示：`sudo sh …` の形を README の前面に）：README（英・日）の状態の欄のすぐ下に「Install / インストール」を置き、Debian 13・Ubuntu 24.04/26.04・Arch の `sudo sh scripts/install_<名前>.sh` を一行ずつ。以前は英語版で手で meson のビルドが先に出ていて、インストーラは「Run」の中に埋もれていた。`sh` を付けるので、実行の許可が落ちたコピー（ブラウザで上げたもの、ZIP の展開の仕方）でも動く。インストーラは root で走らされるのをもとから受け持っている（ビルドはソースフォルダの持ち主として `runuser`、ユーザーのホームには何も書かない）。各ディストリのインストーラにも `SHA256SUMS` の照合を入れた（前は `install_session.sh` だけ。そちらから走らせたときは `DESK_SUMS_CHECKED` で二度はしない）。リリースノート（英・日）の入れ方も同じ形に。
 - **版**：meson に `DESK_RELEASE="DEsk v0.1 (BETA)"` と `DESK_VERSION`（`0.1.0`）。`desk`・`desk-settings`・`desk-index` に `--version`（`desk` は単一起動の鍵の前に答える）、セッションの記録の最初の行、通知サーバーの版（`GetServerInformation`）、プレビューの見本の窓。
 - **テスト**：`scripts/check-words.py` を `meson test` に（言葉の表の列の数、キーの重複、printf の変換が英語と同じか、制御文字。わざと `%d` を `%s` にすると行番号付きで落ちることを確かめた）。
 - **文書**：英語の `docs/ARCHITECTURE.md`（プログラム、ソースの地図、シーンの層、フレーム、入力の順、窓、複数画面、プロトコル、D-Bus、部屋のトレーサと段階とキャッシュ、スレッド、ファイル、言語・書体・音、確かめ方、何が安定か）、`docs/MODDING.md`（準備、決まり、言葉と言語、設定、借りるプログラム、音、部屋、机の上の物、アイコンとテーマ、配る前に）、`docs/CONFIGURATION.md`（ファイル、`shell.conf` の全キーと値と既定、`displays.conf`、`shelves.conf`、環境変数）。日本語版 `ARCHITECTURE.ja.md`・`MODDING.ja.md`。`wm.c` と `draw.c` の頭に全体の説明のコメント（どちらも include から始まっていた）。README（英・日）に版と状態、新しい画面写真（`docs/screenshots/`：入れ子の机で中立なアプリ一式から撮り直し。アカウント名やパスの写る写真は使わない）、文書へのリンク、不具合の知らせ方。英日の `RELEASE-NOTES`（中身、入れ方、分かっている制限、確かめ方、コピーの確かめ方）。
 - 確かめたこと：ビルド 4 構成で警告 0、`meson test`、ASan の入れ子の机と複数画面の流れ（ポスト・本棚・Control Panel・引き出し・ロック・画面の出入り・ログアウトまで）、SIGTERM・SIGHUP・SIGINT での終わり方、7 か国語のプレビュー。点検の途中で `install_session.sh --help` を試したとき、この VM の `~/.local/state/desk/install.log` を説明の文で上書きしてしまった（インストールは何も行われていない）。
+
+### 2.4.56 公開後：GPU の画面でカレンダーとメモを開くと落ちる（2026-10-11）
+
+Reddit で「カレンダーを開くと落ちる」と報告があり、ユーザーの実機（この VM の本物のセッション、1918x920、Ultra）でもカレンダーとメモで落ちた。
+
+- **何が起きていたか**：wlroots の `wlr_render_pass_add_texture` の assert（ソースボックスが絵の外）。コアダンプを、インストールされたものと機械語が同じでデバッグ情報だけ付いたビルド（同じソース・同じ meson のオプション＋`-Ddebug=true`）で読むと、絵は 639x306（ぼかした方の本棚の絵 `cal_soft`）、箱は 0,0,1918,920。
+- **原因**：GLES2 の画面では、scene は絵を GPU に載せたあと元のバッファを手放し、`wlr_scene_buffer.buffer` が NULL になる（pixman の画面は毎回その絵を読むので手放さない。入れ子の試験が pixman だけだったので見つからなかった）。`step_in_place` は `bk[i]->buffer` が NULL なら画面の大きさを使っていた。2.4.55 で入れた `scene_source` の安全策も `b->buffer` から大きさを読んでいたので、GPU の画面では何もしていなかった。
+- **直したこと**：絵の大きさをノードの横に記録する（wlroots の公開の仕組み `wlr_addon` を `node.addons` に。`scene_new`・`scene_swap` で記録、`scene_pic_size` で読む）。`scene_source`、`step_in_place`、カレンダーとメモの `*_nat_w/h` はそこから読む。ノードを作る所（`scene_put`、フィルム、本の絵）はすべて `scene_new`。
+- **残り**：`paint_scene_buffer`（めくった角の下に見える、ほかの紙の影・枠・角を描き直す `curl_underlay`）も `buffer` から画素を読むので、GPU の画面では下の紙が抜けて机だけが見える。落ちはしない。別に直す。
+- 確かめたこと：ビルド 4 構成で警告 0、`meson test`、ASan の入れ子の二画面でポスト・カレンダー・メモ・引き出し・Control Panel。GPU の画面での確認は実機で。
 
 ## 3. 部屋の描画（レイトレーサ）
 
