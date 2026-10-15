@@ -61,6 +61,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <dirent.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -284,6 +285,7 @@ enum base_state {
 #define BASE_OPEN_S 0.48    /* the paper coming out from behind it */
 #define BASE_GO_S 0.25      /* and going from under the window */
 #define BASE_WAIT_S 45.0    /* no window by then: thrown away */
+#define BASE_GONE_S 5.0     /* and sooner, once nothing of the program runs */
 
 struct desk_base {
 	enum base_state state;
@@ -296,6 +298,7 @@ struct desk_base {
 	double at;                    /* when it went into the state it is in */
 	double taken_at;
 	unsigned seed;
+	pid_t sid;                    /* the session its program was started in, or 0 */
 	struct desk_toplevel *view; /* the window that has come to it */
 	struct wlr_scene_buffer *node;
 };
@@ -3691,7 +3694,10 @@ static void binder_take(struct desk_server *server, int idx)
 			server->take.a0 = a;
 			taken = true;
 		}
-		desk_app_launch(app);
+		pid_t sid = desk_app_launch(app);
+		if (b >= 0) {
+			server->bases[b].sid = sid > 0 ? sid : 0;
+		}
 	}
 	desk_apps_release(l);
 	/* With a sheet in the hand you turn back to the desk a moment later
@@ -4104,7 +4110,10 @@ static void book_take(struct desk_server *server, int i)
 			server->take.a0 = a;
 			taken = true;
 		}
-		desk_app_launch(app);
+		pid_t sid = desk_app_launch(app);
+		if (b >= 0) {
+			server->bases[b].sid = sid > 0 ? sid : 0;
+		}
 	}
 	desk_apps_release(l);
 	/* You turn to the desk with the sheet in your hand: the book is put
@@ -8887,13 +8896,17 @@ static void post_paper_away(struct desk_server *server, int i)
 	server_schedule_frames(server);
 }
 
-/* Which piece of paper on the desk is under the pointer, topmost first. */
-static int post_paper_at(struct desk_server *server, double px, double py)
+/* The letter lying on the desk that is the uppermost thing under the
+ * pointer, or -1: a window over it is the window's. The letters lie among
+ * the windows, in their layer, so that a window can lie over one -- which
+ * is why a click is asked about them before it is taken to be a window's. */
+static int post_paper_under(struct desk_server *server)
 {
-	for (int i = server->pb_papers - 1; i >= 0; i--) {
-		struct desk_paper *pp = &server->pb_paper[i];
-		if (px >= pp->x && py >= pp->y && px <= pp->x + pp->w
-			&& py <= pp->y + pp->h) {
+	double sx, sy;
+	struct wlr_scene_node *node = wlr_scene_node_at(&server->scene->tree.node,
+		server->cursor->x, server->cursor->y, &sx, &sy);
+	for (int i = server->pb_papers - 1; node && i >= 0; i--) {
+		if (server->pb_paper[i].node && node == &server->pb_paper[i].node->node) {
 			return i;
 		}
 	}
@@ -9428,6 +9441,7 @@ static int base_new(struct desk_server *server, const struct desk_app *app,
 	snprintf(b->app, sizeof b->app, "%s", app->id);
 	snprintf(b->name, sizeof b->name, "%s", app->name);
 	b->seed = app->seed;
+	b->sid = 0;
 	b->view = NULL;
 	b->state = BASE_CARRIED;
 	b->at = monotonic_sec();
@@ -9491,19 +9505,44 @@ static bool view_app_id(const struct desk_toplevel *view, char *out, size_t n)
 	return app != NULL;
 }
 
+/* The session the process behind a window is in, or 0. */
+static pid_t view_session(const struct desk_toplevel *view)
+{
+	pid_t pid = 0;
+	if (view->xdg_toplevel && view->xdg_toplevel->resource) {
+		wl_client_get_credentials(wl_resource_get_client(view->xdg_toplevel->resource),
+			&pid, NULL, NULL);
+	}
+#ifdef DESK_HAVE_XWAYLAND
+	if (view->xsurface) {
+		pid = view->xsurface->pid;
+	}
+#endif
+	pid_t sid = pid > 0 ? getsid(pid) : -1;
+	return sid > 0 ? sid : 0;
+}
+
 /* A window being put on the desk for the first time: is there a sheet
- * waiting for it? Its own program's, or -- a window that will not say whose
- * it is -- the one sheet taken out lately, if only one is waiting. */
+ * waiting for it? The one put down for the program started in the session
+ * the window's process is in -- whatever the window calls itself: a
+ * program run in a terminal (btop) shows the terminal's window, and some
+ * name themselves other than their desktop file does --; else its own
+ * program's by name; or -- a window that will not say whose it is -- the
+ * one sheet taken out lately, if only one is waiting. */
 static struct desk_base *base_claim(struct desk_server *server, struct desk_toplevel *view)
 {
 	char id[96];
 	bool known = view_app_id(view, id, sizeof id);
-	struct desk_base *best = NULL, *lone = NULL;
+	pid_t sid = view_session(view);
+	struct desk_base *best = NULL, *lone = NULL, *ours = NULL;
 	int young = 0;
 	for (int i = 0; i < DESK_BASES; i++) {
 		struct desk_base *b = &server->bases[i];
 		if (b->state == BASE_FREE || b->state == BASE_GOING || b->view) {
 			continue;
+		}
+		if (sid > 0 && b->sid == sid) {
+			ours = b;
 		}
 		if (known && strcmp(b->app, id) == 0 && (!best || b->taken_at < best->taken_at)) {
 			best = b;
@@ -9512,6 +9551,9 @@ static struct desk_base *base_claim(struct desk_server *server, struct desk_topl
 			young++;
 			lone = b;
 		}
+	}
+	if (ours) {
+		best = ours;
 	}
 	/* only a window that will not say whose it is: one that does, and is
 	 * some other program's, is not what anybody put a sheet down for */
@@ -9734,17 +9776,59 @@ static void take_tick(struct desk_server *server)
 	}
 }
 
+/* Whether anything is still running in session sid: a process whose
+ * session (the sixth field of /proc/<pid>/stat, after the name in
+ * brackets) it is. */
+static bool session_alive(pid_t sid)
+{
+	DIR *d = opendir("/proc");
+	if (!d) {
+		return true;   /* not to be known: waited out instead */
+	}
+	bool alive = false;
+	struct dirent *e;
+	while (!alive && (e = readdir(d))) {
+		if (e->d_name[0] < '1' || e->d_name[0] > '9') {
+			continue;
+		}
+		char path[300], line[512];
+		snprintf(path, sizeof path, "/proc/%s/stat", e->d_name);
+		FILE *f = fopen(path, "re");
+		if (!f) {
+			continue;
+		}
+		if (fgets(line, sizeof line, f)) {
+			const char *p = strrchr(line, ')');
+			int session = 0;
+			if (p && sscanf(p + 1, " %*c %*d %*d %d", &session) == 1 && session == sid) {
+				alive = true;
+			}
+		}
+		fclose(f);
+	}
+	closedir(d);
+	return alive;
+}
+
 /* Once a second: a program that has not sent its window has its sheet
- * screwed up and thrown away. */
+ * screwed up and thrown away -- after BASE_WAIT_S, or as soon as nothing it
+ * started is running any more (it quit, or handed the work to a program
+ * already running, and no window is coming). */
 static void base_timeouts(struct desk_server *server)
 {
 	double now = monotonic_sec(), waited_now = real_sec();
 	for (int i = 0; i < DESK_BASES; i++) {
 		struct desk_base *b = &server->bases[i];
-		if (b->state != BASE_WAITING || b->view || waited_now - b->taken_at < BASE_WAIT_S) {
+		if (b->state != BASE_WAITING || b->view) {
 			continue;
 		}
-		wlr_log(WLR_INFO, "no window came for %s: its sheet is thrown away", b->app);
+		double waited = waited_now - b->taken_at;
+		bool gone = waited >= BASE_GONE_S && b->sid > 0 && !session_alive(b->sid);
+		if (waited < BASE_WAIT_S && !gone) {
+			continue;
+		}
+		wlr_log(WLR_INFO, "no window came for %s%s: its sheet is thrown away", b->app,
+			gone ? " (nothing of it is running)" : "");
 		if (!server->conf.throw_closed) {
 			/* not screwed up: it simply goes */
 			b->state = BASE_GOING;
@@ -19973,6 +20057,16 @@ static void server_cursor_button(struct wl_listener *listener, void *data)
 	if (card_press(server, event->button)) {
 		return;
 	}
+	/* A letter lying on the desk, uppermost under the pointer: put away.
+	 * (Asked here: it lies in the windows' layer, and below this a click
+	 * there was taken for a window's, so a letter could not be put away.) */
+	if (event->button == BTN_LEFT) {
+		int pi = post_paper_under(server);
+		if (pi >= 0) {
+			post_paper_away(server, pi);
+			return;
+		}
+	}
 	/* What lies on the desk, if no window lies over it. */
 	bool on_window = window_under(server);
 	if (!on_window) {
@@ -19997,14 +20091,6 @@ static void server_cursor_button(struct wl_listener *listener, void *data)
 				server->cursor->x, server->cursor->y, server->drawer_t)) {
 			console_toggle(server);
 			return;
-		}
-		/* a letter already taken out and lying on the desk: put it away */
-		if (event->button == BTN_LEFT) {
-			int pi = post_paper_at(server, server->cursor->x, server->cursor->y);
-			if (pi >= 0) {
-				post_paper_away(server, pi);
-				return;
-			}
 		}
 		/* and the post box itself */
 		if (event->button == BTN_LEFT
@@ -22629,7 +22715,6 @@ int main(int argc, char **argv)
 	/* and the room is not left being traced into exit() */
 	desk_room_stop();
 	render_unpublish();
-	desk_session_end();
 #ifdef DESK_HAVE_XWAYLAND
 	xwayland_stop(&server);
 #endif

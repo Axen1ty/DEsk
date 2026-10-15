@@ -2,7 +2,7 @@
 
 # DEsk
 
-**v0.1.1 (BETA)** -- fixes to v0.1, the first public release. See [RELEASE-NOTES.md](RELEASE-NOTES.md).
+**v0.1.2 (BETA)** -- v0.1, the first public release, with fixes and an installer for Fedora. See [RELEASE-NOTES.md](RELEASE-NOTES.md).
 
 I've created a Discord server!
 You can also report bugs and submit ideas for new features here!
@@ -52,6 +52,12 @@ sudo sh scripts/install_ubuntu.sh
 
 ```sh
 sudo sh scripts/install_arch.sh
+```
+
+**Fedora 43 / 44** (and Nobara)
+
+```sh
+sudo sh scripts/install_fedora.sh
 ```
 
 Then log out and choose **DEsk** on the login screen.
@@ -188,7 +194,7 @@ browser, a file manager and a text editor. The drawer's things and
   settings, borrowed programs, sounds, the room, things on the desk.
 - [docs/CONFIGURATION.md](docs/CONFIGURATION.md) -- every setting, file and
   environment variable.
-- [RELEASE-NOTES.md](RELEASE-NOTES.md) -- what is in v0.1.1 and what is known
+- [RELEASE-NOTES.md](RELEASE-NOTES.md) -- what is in v0.1.2 and what is known
   not to work yet.
 - [docs/design.md](docs/design.md) -- the full development log (in Japanese).
 
@@ -212,7 +218,7 @@ appearance dialogs (which need xfsettingsd, and xfsettingsd overwrites
 GSettings with Xfce's defaults as it starts) are not used.
 
 ```sh
-sudo sh scripts/install_debian.sh     # DEsk and the whole set (install_ubuntu.sh, install_arch.sh)
+sudo sh scripts/install_debian.sh     # DEsk and the whole set (install_ubuntu.sh, install_arch.sh, install_fedora.sh)
 sh scripts/install-desktop.sh         # only the programs (shows them, then asks for sudo)
 sh scripts/install-desktop.sh --extras   # and the office suite, mail...
 ```
@@ -228,14 +234,14 @@ Ubuntu the same set is also one package:
 | pictures, documents, music and video | Ristretto, Atril, Parole |
 | tools | Engrampa, GNOME Disks |
 | networks, Bluetooth, sound | NetworkManager with its applet and editor, Blueman, PipeWire, pavucontrol |
-| displays, looks, defaults | wdisplays, nwg-look (GNOME Tweaks on Ubuntu 24.04), Xfce's MIME settings |
+| displays, looks, defaults | wdisplays, nwg-look (GNOME Tweaks on Ubuntu 24.04 and Fedora), Xfce's MIME settings |
 | printing | system-config-printer, CUPS |
-| notices | udiskie (memory sticks mounted, with a letter), poweralertd (low battery; batsignal on Arch), package-update-indicator (updates; Debian and Ubuntu) |
-| looking after the machine | QDirStat (disk usage), LXQt's date and time and users, Mugshot (your name and picture), Seahorse (passwords and keys), gnome-packagekit (adding and removing programs), Back In Time (backups), Xfce Task Manager, hardinfo2 (about this computer); baobab and Deja Dup on Arch |
+| notices | udiskie (memory sticks mounted, with a letter), poweralertd (low battery; batsignal on Arch; none on Fedora), package-update-indicator (updates; Debian and Ubuntu) |
+| looking after the machine | QDirStat (disk usage), LXQt's date and time and users, Mugshot (your name and picture), Seahorse (passwords and keys), gnome-packagekit (adding and removing programs), Back In Time (backups), Xfce Task Manager, hardinfo2 (about this computer); baobab and Deja Dup on Arch; no Mugshot on Fedora |
 | passwords | MATE's polkit agent, GNOME Keyring |
 | plumbing | xdg-desktop-portal (wlr, gtk), Xwayland, xdg-user-dirs, xdg-utils, wl-clipboard, grim, curl |
 | looks | Qt's GTK platform theme, so Qt programs match the GTK ones |
-| typing and fonts | IBus (and Mozc for Japanese), Noto (CJK, emoji), the URW base 35, Klee One |
+| typing and fonts | IBus (and Mozc for Japanese), Noto (CJK, emoji), the URW base 35, Klee One (not on Arch or Fedora) |
 | `--extras` | LibreOffice (drawn with GTK), Thunderbird, Galculator, Xfce Task Manager, Simple Scan |
 
 The classic GTK programs of Xfce and MATE come first because they are the
@@ -348,9 +354,10 @@ disk, each 1.0-9.9, on brass-rimmed meters; the base score is the lowest.
 The simplest way is the installer for your distribution (below), which
 brings everything. To build it yourself:
 
-- wlroots 0.18 (Debian 13 has it; Ubuntu 24.04 has 0.17, Ubuntu 26.04 only
-  0.19 and Arch only 0.20, so the installers build 0.18.3 from its release
-  into `/opt/desk-wlroots`, used by DEsk alone through its run path)
+- wlroots 0.18 (Debian 13 has it, and Fedora 43 and later as `wlroots0.18`;
+  Ubuntu 24.04 has 0.17, Ubuntu 26.04 only 0.19 and Arch only 0.20, so the
+  installers build 0.18.3 from its release into `/opt/desk-wlroots`, used by
+  DEsk alone through its run path)
 - wayland, wayland-protocols, xkbcommon, cairo, pixman, fontconfig, libdrm, PAM
 - libsystemd (optional): the notification daemon and the system tray.
   Build with `-Dpost=disabled` to leave them out.
@@ -378,7 +385,7 @@ GPU, about 10 minutes on two cores without one (then it is cached).
 | GPU | none needed (a long first login) | OpenGL ES 3.0 with GBM (Mesa Intel, AMD, Nouveau; VMware's SVGA3D) |
 | screen | 1366x768 | 1440x900 or more |
 | disk | about 1 GB (`--bare`; `--no-apps` adds what Shell Settings opens) | 2-2.7 GB with the whole set |
-| system | Debian 13, Ubuntu 24.04 / 26.04 LTS, Arch Linux | the same |
+| system | Debian 13, Ubuntu 24.04 / 26.04 LTS, Arch Linux, Fedora 43 / 44 | the same |
 
 ## Build
 
@@ -396,11 +403,11 @@ Inside your current session, as a window:
 ```
 
 As a session of its own, picked from the login screen (GDM, SDDM, LightDM),
-use the installer for your system ([Install](#install)). All three take the
+use the installer for your system ([Install](#install)). All four take the
 same options:
 
 ```sh
-sudo sh scripts/install_debian.sh              # or install_ubuntu.sh, install_arch.sh
+sudo sh scripts/install_debian.sh              # or install_ubuntu.sh, install_arch.sh, install_fedora.sh
 sudo sh scripts/install_debian.sh --no-apps    # DEsk, what it needs and what Shell Settings opens
 sudo sh scripts/install_debian.sh --bare       # DEsk and what it needs, no programs (containers)
 sudo sh scripts/install_debian.sh --prefix /opt/desk
@@ -408,7 +415,7 @@ sudo sh scripts/install_debian.sh --prefix /opt/desk
 
 `sh scripts/install_session.sh` picks the right one by itself and keeps what
 it says in `~/.local/state/desk/install.log`. Each installer does the same
-(derivatives such as Mint, Pop!_OS, EndeavourOS and Manjaro are recognised):
+(derivatives such as Mint, Pop!_OS, EndeavourOS, Manjaro and Nobara are recognised):
 packages, a release build in `build-install`, the PAM file, the login entry,
 and the removal of what the old name, DeskWM, left behind (after asking).
 Every program Shell Settings' System tab opens is installed, `--no-apps` or
@@ -465,8 +472,19 @@ GPU's to trace.
 
 ## Reporting a problem
 
-Please say which version (`desk --version`) and which Linux, what you did and
-what happened, and attach:
+The quickest way: run this in a terminal (any desktop, or a console -- DEsk
+need not start), and attach the file it writes, `~/desk-report.txt`:
+
+```sh
+desk-report
+```
+
+It gathers DEsk's version, your Linux, your graphics card and driver, the
+last session's log and whether DEsk crashed, with your user name, home
+folder, machine name and network addresses taken out. Read it through before
+sending it. Say too what you did and what happened.
+
+Without it (an older DEsk, or one not installed), attach by hand:
 
 - `~/.local/state/desk/session.log` (and `session.log.old` if the problem was
   in the session before) -- what DEsk said as it ran;

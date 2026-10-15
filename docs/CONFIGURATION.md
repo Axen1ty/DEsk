@@ -24,7 +24,7 @@ unless set otherwise.
 | `$XDG_DATA_HOME/desk/memo` | DEsk | The memo pad's sheets. |
 | `$XDG_CACHE_HOME/desk/` | DEsk | The traced room, icons converted from SVG, your picture for the door. Safe to delete; it is made again. |
 | `$XDG_STATE_HOME/desk/session.log`, `session.log.old` | `desk-session` | What DEsk said this session and the one before. |
-| `$XDG_STATE_HOME/desk/install.log` | the installer | What the last install said. |
+| `$XDG_STATE_HOME/desk/install.log` | `install_session.sh` | What the last install run through it said (one run straight from `install_<system>.sh` says it only on the terminal). |
 | `$XDG_STATE_HOME/desk/cpu-letter` | DEsk | When the "running on the CPU" letter was last sent. |
 
 DEsk writes every file to a new name and renames it into place, so a crash

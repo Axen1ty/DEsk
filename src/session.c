@@ -146,7 +146,9 @@ static bool on_path(const char *name, char *out, size_t n)
 }
 
 /* The variables a program started for the session needs to find it. Only
- * those that are set are passed on. */
+ * those that are set are passed on. All of them are taken back when the
+ * session is over (desk-session-helper end, which names them too): another
+ * desktop is not to get them. */
 static const char *const ACTIVATION_VARS[] = {
 	"WAYLAND_DISPLAY", "DISPLAY", "XDG_CURRENT_DESKTOP", "XDG_SESSION_TYPE",
 	"XDG_SESSION_DESKTOP", "DESKTOP_SESSION", "QT_QPA_PLATFORM", "QT_QPA_PLATFORMTHEME",
@@ -154,8 +156,7 @@ static const char *const ACTIVATION_VARS[] = {
 	"XMODIFIERS", "DESK_IM", "XCURSOR_THEME", "XCURSOR_SIZE",
 	/* DEsk's own layer of settings over the user's (desk-session): what
 	 * D-Bus starts for the session -- a file manager asked to show a
-	 * folder -- looks as the rest of the session does. Taken back out at
-	 * the end (desk_session_end): another desktop is not to get it. */
+	 * folder -- looks as the rest of the session does. */
 	"DCONF_PROFILE",
 };
 
@@ -391,7 +392,7 @@ static void autostart_dir(const char *dir)
 			|| !on_path(argv[0], found, sizeof found)) {
 			continue;
 		}
-		if (desk_exec_launch(argv, e.path) == 0) {
+		if (desk_exec_launch(argv, e.path) > 0) {
 			wlr_log(WLR_INFO, "autostart: %s (%s)", e.name[0] ? e.name : de->d_name,
 				de->d_name);
 		}
@@ -428,28 +429,6 @@ static void autostart(void)
 	 * stands in for one of these */
 	autostart_dir(DESK_DATADIR "/desk/autostart");
 #endif
-}
-
-/* At the end of the session: what only this session is to have, taken
- * back out of systemd's environment -- another desktop logged in to next,
- * with the user's systemd still running, would otherwise start its own
- * services in DEsk's layer of settings. */
-void desk_session_end(void)
-{
-	char prog[1024];
-	if (!desk_session_is_desktop() || !getenv("DCONF_PROFILE")
-		|| !on_path("systemctl", prog, sizeof prog)) {
-		return;
-	}
-	char *argv[] = { prog, "--user", "unset-environment", "DCONF_PROFILE", NULL };
-	pid_t pid;
-	if (posix_spawn(&pid, prog, NULL, NULL, argv, environ) != 0) {
-		return;
-	}
-	int st = 0;
-	while (waitpid(pid, &st, 0) < 0 && errno == EINTR) {
-		;
-	}
 }
 
 void desk_session_start(struct wl_event_loop *loop)

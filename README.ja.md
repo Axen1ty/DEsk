@@ -14,7 +14,7 @@ iOS 6 のころのように画面の中の物を本物そっくりに描く考�
 部屋はレイトレースで描かれ、一つの電気スタンドがそのすべてを照らします。
 フラットな懐古スキンではなく、ウォルナットの木目・引き出しのフェルト・紙の繊維・レザーのステッチをピクセル単位で組んでいます。
 
-**v0.1.1 (BETA)** — 最初の公開版 v0.1 の修正版です。直したこと・中身・分かっている制限は [RELEASE-NOTES.ja.md](RELEASE-NOTES.ja.md) に。
+**v0.1.2 (BETA)** — 最初の公開版 v0.1 に、修正と Fedora のインストーラを足した版です。直したこと・中身・分かっている制限は [RELEASE-NOTES.ja.md](RELEASE-NOTES.ja.md) に。
 
 discordのサーバーを作りました！是非参加してください。
 リンク： https://discord.gg/xR5f7Xs49
@@ -44,6 +44,12 @@ sudo sh scripts/install_ubuntu.sh
 
 ```sh
 sudo sh scripts/install_arch.sh
+```
+
+**Fedora 43 / 44**（Nobara も）
+
+```sh
+sudo sh scripts/install_fedora.sh
 ```
 
 終わったらログアウトして、ログイン画面で **DEsk** を選びます。
@@ -749,9 +755,9 @@ CG」の主成分**です。
 いちばん簡単なのは、配布ごとのインストーラです（下の「インストール」）。依存の
 パッケージも、おすすめのプログラムも一緒に入れます。自分でビルドするときに要るもの:
 
-- wlroots 0.18（Debian 13 にはあります。Ubuntu 24.04 は 0.17、Ubuntu 26.04 は 0.19、
-  Arch は 0.20 しか持っていないので、インストーラが 0.18.3 を公式のリリースから
-  `/opt/desk-wlroots` にビルドし、DEsk だけがそれを使います）
+- wlroots 0.18（Debian 13 と、Fedora 43 以降の `wlroots0.18` にはあります。Ubuntu 24.04 は
+  0.17、Ubuntu 26.04 は 0.19、Arch は 0.20 しか持っていないので、インストーラが 0.18.3 を
+  公式のリリースから `/opt/desk-wlroots` にビルドし、DEsk だけがそれを使います）
 - wayland、wayland-protocols、xkbcommon、cairo、pixman、fontconfig、libdrm、PAM
 - libsystemd（任意 — あれば通知デーモンとシステムトレイになります。無ければポストは空のまま、トレイの紙片と時計の MEDIA の再生情報は出ません。`-Dpost=disabled` で、あっても組み込みません）
 - libpulse（任意 — 机の音。無ければ実行時に ALSA を試します。`-Dsound=disabled`）
@@ -791,7 +797,7 @@ sudo apt install gcc libc6-dev meson ninja-build pkg-config python3 \
 | GPU | 無くても動きます（初回の部屋の焼き上げが長くなります） | OpenGL ES 3.0 と GBM の使えるもの（Mesa の Intel・AMD・Nouveau、VM の SVGA3D でも） |
 | 画面 | 1366×768 | 1440×900 以上（設計の基準が 1440×900） |
 | ディスク | 約 1 GB（`--bare`。`--no-apps` は Shell Settings が開くプログラムの分さらに） | 約 2〜2.7 GB（おすすめのプログラムも全部） |
-| OS | Debian 13、Ubuntu 24.04 / 26.04 LTS、Arch Linux | 同じ |
+| OS | Debian 13、Ubuntu 24.04 / 26.04 LTS、Arch Linux、Fedora 43 / 44 | 同じ |
 
 測った値（2026-10-09、Ryzen 7 7800X3D の VM。`systemd-run` の CPUQuota・
 MemoryMax と `taskset` で絞る）:
@@ -944,7 +950,7 @@ DEsk は机を描きます。机の上でする仕事のほうは、**すでに�
 ### 一式を入れる
 
 ```sh
-sudo sh scripts/install_debian.sh     # DEsk と一式（install_ubuntu.sh、install_arch.sh も同じ）
+sudo sh scripts/install_debian.sh     # DEsk と一式（install_ubuntu.sh、install_arch.sh、install_fedora.sh も同じ）
 sh scripts/install-desktop.sh         # プログラムだけ（入れるものを見せて、聞いてから sudo）
 sh scripts/install-desktop.sh --extras   # オフィス・メールなども
 sh scripts/install-desktop.sh --dry-run  # 見せるだけ
@@ -967,15 +973,15 @@ sudo apt install ./desk-desktop_*_all.deb
 | 見る・聴く | Ristretto（画像）、Atril（PDF など）、Parole（音楽・動画） |
 | 道具 | Engrampa（圧縮ファイル）、GNOME ディスク |
 | ネットワーク・Bluetooth・音 | NetworkManager とアプレット・接続エディタ、Blueman、PipeWire、pavucontrol |
-| 画面・見た目・既定のプログラム | wdisplays、nwg-look（Ubuntu 24.04 では GNOME Tweaks）、Xfce の MIME の設定（xfce4-settings） |
+| 画面・見た目・既定のプログラム | wdisplays、nwg-look（Ubuntu 24.04 と Fedora では GNOME Tweaks）、Xfce の MIME の設定（xfce4-settings） |
 | 印刷 | system-config-printer、CUPS |
-| 知らせ | udiskie（メモリスティック）、poweralertd（電池。Arch は batsignal）、package-update-indicator（更新。Debian・Ubuntu） |
-| 管理 | QDirStat（ディスクの使用量）、LXQt の日付と時刻・ユーザー、mugshot（名前と写真）、seahorse（パスワードと鍵）、gnome-packagekit（プログラムの追加と削除）、Back In Time（バックアップ）、Xfce タスクマネージャ、hardinfo2（このコンピュータについて）。Arch では QDirStat と Back In Time が AUR なので baobab と Déjà Dup |
+| 知らせ | udiskie（メモリスティック）、poweralertd（電池。Arch は batsignal、Fedora には無い）、package-update-indicator（更新。Debian・Ubuntu） |
+| 管理 | QDirStat（ディスクの使用量）、LXQt の日付と時刻・ユーザー、mugshot（名前と写真）、seahorse（パスワードと鍵）、gnome-packagekit（プログラムの追加と削除）、Back In Time（バックアップ）、Xfce タスクマネージャ、hardinfo2（このコンピュータについて）。Arch では QDirStat と Back In Time が AUR なので baobab と Déjà Dup。Fedora には mugshot が無い |
 | 足回り（見えないもの） | colord（色）、mesa-utils（hardinfo2 が使う）、Qt の Wayland プラグイン（qt6-wayland・qtwayland5）、昔ながらの色付きアイコン（adwaita-icon-theme-legacy。Ubuntu 24.04 は Yaru。Back In Time が要る） |
 | パスワード | MATE の認証エージェント、GNOME キーリング |
 | 足回り | xdg-desktop-portal（wlr・gtk）、Xwayland、xdg-user-dirs、xdg-utils、wl-clipboard、grim、curl |
 | 見た目 | Qt の GTK プラットフォームテーマ（Qt のソフトが周りの GTK のソフトに合わせる） |
-| 入力・書体 | IBus（日本語なら Mozc も）、Noto（CJK・絵文字）、URW の基本 35 書体、Klee One |
+| 入力・書体 | IBus（日本語なら Mozc も）、Noto（CJK・絵文字）、URW の基本 35 書体、Klee One（Arch と Fedora には無い） |
 | `--extras` | LibreOffice（Writer・Calc・Impress、GTK で描くもの）、Thunderbird、Galculator、Xfce タスクマネージャ、Simple Scan |
 
 Xfce と MATE の昔ながらの GTK のソフトが中心なのは、メニューバー・素直な道具・文書と
@@ -1188,10 +1194,10 @@ Shell Settings の「Camera bounce」（カメラの揺れ）で低く、また�
 
 Linux でシステムに入れて、GDM / SDDM / LightDM のログイン画面から選びます。
 手に入れたフォルダで、使っているシステムのインストーラを実行します（上の「インストール」）。
-三つとも同じオプションです:
+四つとも同じオプションです:
 
 ```sh
-sudo sh scripts/install_debian.sh            # install_ubuntu.sh、install_arch.sh も同じ
+sudo sh scripts/install_debian.sh            # install_ubuntu.sh、install_arch.sh、install_fedora.sh も同じ
 sudo sh scripts/install_debian.sh --yes      # 聞かずに、すすめる答えで
 sudo sh scripts/install_debian.sh --no-apps  # DEsk と要るもの、Shell Settings が開くプログラムだけ
 sudo sh scripts/install_debian.sh --bare     # DEsk と要るものだけ（プログラムは何も入れない。コンテナ用）
@@ -1200,13 +1206,14 @@ sudo sh scripts/install_debian.sh --prefix /opt/desk   # 入れる場所（既�
 
 `sh scripts/install_session.sh` は `/etc/os-release` を見て、次のどれかに自分で渡し
 （同じオプション）、言ったことを `~/.local/state/desk/install.log` にも残します。
-Linux Mint・Pop!_OS は Ubuntu、EndeavourOS・Manjaro は Arch として扱います。
+Linux Mint・Pop!_OS は Ubuntu、EndeavourOS・Manjaro は Arch、Nobara などは Fedora として扱います。
 
 | 配布 | スクリプト | wlroots 0.18 |
 | --- | --- | --- |
 | Debian 13 | `scripts/install_debian.sh` | 配布のもの（`libwlroots-0.18-dev`） |
 | Ubuntu 24.04 / 26.04 LTS | `scripts/install_ubuntu.sh` | 配布に無い（24.04 は 0.17、26.04 は 0.19）ので、0.18.3 を公式のリリースから `/opt/desk-wlroots` にビルド（24.04 では Wayland 1.23.1 も）。DEsk だけが RUNPATH で使い、ほかのプログラムには見えません。universe が切られていれば聞いてから入れます。Firefox は snap（snapd が動いていれば `snap install firefox`） |
 | Arch Linux | `scripts/install_arch.sh` | 公式のリポジトリには 0.20 しか無いので、入っている `wlroots0.18`（AUR）を使い、無ければ 0.18.3 を `/opt/desk-wlroots` にビルド。Klee One と ibus-mozc は AUR にしか無いので、そう言って代わりのものを使います。ログイン画面が無ければ、コンソールから `desk-session` か LightDM の入れ方を案内します |
+| Fedora 43 / 44 | `scripts/install_fedora.sh` | 配布の `wlroots0.18`（`wlroots0.18-devel`）。無い Fedora では 0.18.3 を `/opt/desk-wlroots` にビルド。dnf で入れ、弱い依存（おすすめ）は入れません（GNOME Tweaks が GNOME Shell と GDM まで連れてくるので）。Klee One・Mugshot・電池と更新の知らせは Fedora に無いので、そう言って入れずに済ませます。ログイン画面が無ければ、コンソールから `desk-session` か LightDM の入れ方を案内します |
 
 どのスクリプトも同じ順にします：足りないパッケージを入れる（パッケージの一覧は
 スクリプトの頭の表。Shell Settings の **System タブの各行が開くプログラム**と、それが
@@ -2127,12 +2134,12 @@ DEsk のもの）で、その上に描いたフォルダーとメモ帳にフォ
 | Disks | | | gnome-disks |
 | Disk usage | | | QDirStat → baobab（Arch は baobab） |
 | **LOOK AND LANGUAGE** | | | |
-| Look of other programs | | | nwg-look → GNOME Tweaks（Ubuntu 24.04 には nwg-look が無いので） |
+| Look of other programs | | | nwg-look → GNOME Tweaks（Ubuntu 24.04 と Fedora には nwg-look が無いので） |
 | Input method | | | ibus-setup → fcitx5-config-qt |
 | Date and time | | | lxqt-admin-time |
 | Default programs | | | xfce4-mime-settings → mate-default-applications-properties。ここで選んだブラウザ・ファイルマネージャ・エディタが引き出しの物にもなります（`~/.config/mimeapps.list`） |
 | **THIS COMPUTER** | | | |
-| Your name and picture | | | mugshot（玄関の札とログイン画面） |
+| Your name and picture | | | mugshot（玄関の札とログイン画面。Fedora には無い） |
 | Users | | | lxqt-admin-user |
 | Passwords and keys | | | seahorse |
 | Adding and removing programs | | | gnome-packagekit（gpk-application）→ GNOME Software |
@@ -2302,7 +2309,15 @@ DEsk の机の部品（引き出し・本棚・Control Panel・ポスト・カ�
 
 ### 不具合を知らせるとき
 
-どの版か（`desk --version`）、どの Linux か、何をして何が起きたかと一緒に、次を添えてください。
+一番簡単なのは、端末で次を実行して、できたファイル `~/desk-report.txt` を添えることです（どのデスクトップからでも、コンソールからでも。DEsk が起動しなくても使えます）。
+
+```sh
+desk-report
+```
+
+DEsk の版、Linux、グラフィックカードとドライバー、直前のセッションのログ、DEsk が落ちたかどうかをまとめ、ユーザー名・ホームフォルダ・マシン名・ネットワークのアドレスは取り除きます。送る前に中身を見てください。何をして何が起きたかも書いてください。
+
+これが無いとき（古い DEsk や、インストールされていないとき）は、次を手で添えてください。
 
 - `~/.local/state/desk/session.log`（ひとつ前のセッションのことなら `session.log.old` も）— DEsk が動きながら言ったこと
 - インストーラが止まったなら、端末に出た最後の数行（`install_session.sh` から走らせたときは `~/.local/state/desk/install.log`）

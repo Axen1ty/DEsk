@@ -137,8 +137,8 @@ int desk_app_build_argv(const struct desk_app *app, char **argv, int argv_max,
  * the way an app is started. */
 int desk_exec_argv(const char *exec, char **argv, int argv_max, char *pool, size_t pool_size);
 pid_t desk_exec_launch(char **argv, const char *workdir);
-/* Start it, detached: fork twice, setsid, exec. Returns 0 once it is on its
- * way, or -1. */
+/* Start it, detached: fork twice, setsid, exec. Returns the session it was
+ * started in (its processes' getsid()) once it is on its way, or -1. */
 pid_t desk_app_launch(const struct desk_app *app);
 /* In a child about to exec: every file descriptor from lowest up closed,
  * so that nothing of the parent's goes with the program it becomes. */

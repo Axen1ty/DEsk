@@ -22,11 +22,11 @@
 # apt (Debian, Ubuntu), dnf (Fedora), pacman (Arch) and zypper (openSUSE):
 # each thing below is a list of names it goes by; one of them installed
 # already will do, else the first one the package manager knows is the one
-# installed. Nothing is removed. The Debian, Ubuntu and Arch names are the
-# ones scripts/install_debian.sh, install_ubuntu.sh and install_arch.sh
-# install, and were tried there; the Fedora and openSUSE ones are what
-# those distributions are known to call them, and were not. On Debian 13,
-# Ubuntu and Arch, the same programs come with DEsk itself from
+# installed. Nothing is removed. The Debian, Ubuntu, Arch and Fedora names
+# are the ones scripts/install_debian.sh, install_ubuntu.sh, install_arch.sh
+# and install_fedora.sh install, and were tried there; the openSUSE ones are
+# what that distribution is known to call them, and were not. On Debian 13,
+# Ubuntu, Arch and Fedora, the same programs come with DEsk itself from
 # scripts/install_session.sh.
 set -eu
 
@@ -69,7 +69,7 @@ core|networks: the applet in the tray|network-manager-applet network-manager-gno
 core|networks: connection editor|nm-connection-editor network-manager-gnome NetworkManager-connection-editor
 core|Bluetooth (Blueman)|blueman
 core|memory sticks: mounted, with a letter (udiskie)|udiskie
-core|tray slips for udiskie and other indicators|gir1.2-ayatanaappindicator3-0.1 libayatana-appindicator typelib-1_0-AyatanaAppIndicator3-0_1
+core|tray slips for udiskie and other indicators|gir1.2-ayatanaappindicator3-0.1 libayatana-appindicator libayatana-appindicator-gtk3 typelib-1_0-AyatanaAppIndicator3-0_1
 core|a letter when the battery runs low|poweralertd batsignal
 core|a letter when there are updates|package-update-indicator|apt
 core|sound (PipeWire, or the PulseAudio you have)|pipewire-pulse pipewire-pulseaudio pulseaudio
@@ -89,14 +89,14 @@ core|backups (Back In Time)|backintime-qt deja-dup
 core|full-colour icons (Back In Time wants them)|adwaita-icon-theme-legacy yaru-theme-icon
 core|what the computer is doing|xfce4-taskmanager
 core|about this computer|hardinfo2 cpu-x
-core|about this computer: the graphics part|mesa-utils Mesa-demo-x
+core|about this computer: the graphics part|mesa-utils glx-utils Mesa-demo-x
 core|Qt 6 programs on Wayland|qt6-wayland qt6-qtwayland libQt6WaylandClient6
 core|Qt 5 programs on Wayland|qtwayland5 qt5-wayland qt5-qtwayland libqt5-qtwayland
 core|displays (wdisplays)|wdisplays
 core|default programs (Xfce MIME settings)|xfce4-settings
-core|theme, icons and cursor (nwg-look)|nwg-look gnome-tweaks
-core|Qt 6 programs dressed as the GTK ones|qt6-gtk-platformtheme qt6-platformtheme-gtk3|apt zypper
-core|Qt 5 programs dressed as the GTK ones|qt5-gtk-platformtheme libqt5-qtbase-platformtheme-gtk3|apt zypper
+core|theme, icons and cursor (nwg-look; GNOME Tweaks on Fedora)|nwg-look gnome-tweaks
+core|Qt 6 programs dressed as the GTK ones|qt6-gtk-platformtheme qt6-qtbase-gui qt6-platformtheme-gtk3|apt dnf zypper
+core|Qt 5 programs dressed as the GTK ones|qt5-gtk-platformtheme qt5-qtbase-gui libqt5-qtbase-platformtheme-gtk3|apt dnf zypper
 core|portals (file choosers, screen sharing)|xdg-desktop-portal
 core|portals: screenshots and screen sharing|xdg-desktop-portal-wlr
 core|portals: GTK file chooser|xdg-desktop-portal-gtk

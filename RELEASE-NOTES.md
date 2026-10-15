@@ -1,8 +1,35 @@
 **English** | [日本語](RELEASE-NOTES.ja.md)
 
-# DEsk v0.1.1 (BETA)
+# DEsk v0.1.2 (BETA)
 
-## What changed since v0.1
+## What changed since v0.1.1
+
+- **Fedora**: an installer for Fedora 43 and 44 (and what is built on them,
+  such as Nobara), `sudo sh scripts/install_fedora.sh`. Everything comes from
+  Fedora's own repositories, wlroots 0.18 included (`wlroots0.18`); it is
+  built from its release only on a Fedora that has none. Packages that are
+  only recommended are left out, as on Debian and Ubuntu. Not in Fedora, so
+  done without: the memo pad's Klee One (Noto Serif CJK instead), Mugshot,
+  and the letters for a low battery and for updates.
+  `install_session.sh` recognises Fedora, and Shell Settings names Fedora's
+  packages when a row has nothing to open.
+- **Fixed: the Arch installer stopped while building wlroots** (on an Arch
+  without `wlroots0.18` from the AUR), with "mkdir: cannot create directory".
+  Thanks to Axenity on Discord, who found the cause and the fix.
+- **Fixed: a black screen in the next desktop** (Plasma, for one) after
+  logging out of DEsk. DEsk's session now takes back what it told the
+  user's systemd, and stops the portals it started, once it is over.
+- **Fixed: a letter taken out of the post box could not be thrown away.**
+  Click it on the desk.
+- **New: `desk-report`**, which gathers what a bug report needs into one
+  file (`~/desk-report.txt`), with personal things taken out. Run it in a
+  terminal and attach the file.
+- **Fixed: a blank sheet waited about 45 seconds** for programs that run in
+  a terminal (btop) or call their window by another name (KDE's System
+  Settings). The window now finds its sheet by the program it came from, and
+  a program that quits without a window has its sheet cleared in seconds.
+
+## What changed in v0.1.1
 
 - **Fixed: opening the calendar or the memo pad stopped the desk** on
   screens drawn by the GPU. On a GPU screen the desk read the size of a
@@ -49,19 +76,21 @@ lights a ray-traced room.
 - **Five quality levels**, from Ultra down to a 2D Fallback that DEsk picks by
   itself when the screen is drawn on the CPU (no GPU, or a virtual machine
   without 3D).
-- **Installers** for Debian 13, Ubuntu 24.04 and 26.04, and Arch Linux (and
-  their derivatives), which install DEsk, what it needs and a classic set of
-  GTK programs, and check the copy against `SHA256SUMS` first.
+- **Installers** for Debian 13, Ubuntu 24.04 and 26.04, Arch Linux and
+  Fedora 43 and 44 (and their derivatives), which install DEsk, what it
+  needs and a classic set of GTK programs, and check the copy against
+  `SHA256SUMS` first.
 
 ## Installing
 
-Unpack the release (`DEsk-v0.1.1-BETA.zip` or `.tar.gz`), go into its folder
+Unpack the release (`DEsk-v0.1.2-BETA.zip` or `.tar.gz`), go into its folder
 and run the line for your system:
 
 ```sh
 sudo sh scripts/install_debian.sh    # Debian 13
 sudo sh scripts/install_ubuntu.sh    # Ubuntu 24.04 / 26.04, Linux Mint, Pop!_OS
 sudo sh scripts/install_arch.sh      # Arch Linux, EndeavourOS, Manjaro
+sudo sh scripts/install_fedora.sh    # Fedora 43 / 44, Nobara
 ```
 
 Then log out and choose **DEsk** on the login screen. The README has the
@@ -98,6 +127,10 @@ disk afterwards.
 - Real hardware tested so far: VMware virtual machines (SVGA3D) and an ASUS
   ZenBook Duo (two GPUs, two screens). Reports from other machines are very
   welcome.
+- **Fedora** was tried in a clean Fedora 44 container: the installer from
+  scratch and again as an update, the wlroots build for a Fedora without it,
+  and the installed desk run headless. Logging in to it on a Fedora machine
+  (GDM, SDDM) has not been tried yet.
 
 ## How it was checked
 
@@ -112,10 +145,10 @@ rendered in all seven languages; the translation tables checked by
 ## Checking your copy
 
 The folder carries `SHA256SUMS`, which the installer checks before it builds.
-The archive comes with `DEsk-v0.1.1-BETA.tar.gz.sha256`:
+The archive comes with `DEsk-v0.1.2-BETA.tar.gz.sha256`:
 
 ```sh
-sha256sum -c DEsk-v0.1.1-BETA.tar.gz.sha256
+sha256sum -c DEsk-v0.1.2-BETA.tar.gz.sha256
 ```
 
 ## License

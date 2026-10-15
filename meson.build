@@ -1,5 +1,5 @@
 project('desk', 'c',
-  version: '0.1.1',
+  version: '0.1.2',
   default_options: [
     'buildtype=debugoptimized',
     'c_std=c11',
@@ -15,7 +15,7 @@ add_project_arguments(
 )
 # what this release is called, as --version and the session log say it,
 # and its number, as the notification server tells programs that ask
-add_project_arguments('-DDESK_RELEASE="DEsk v0.1.1 (BETA)"',
+add_project_arguments('-DDESK_RELEASE="DEsk v0.1.2 (BETA)"',
   '-DDESK_VERSION="@0@"'.format(meson.project_version()), language: 'c')
 # a variable initialised from itself (x = x) is uninitialised, and in C
 # -Wall does not say so: a keysym once read as garbage that way
@@ -328,6 +328,7 @@ install_data(
 # the screen lock's PAM service (it includes "login"); PAM reads only /etc
 install_data('session/pam/desk', install_dir: '/etc/pam.d')
 install_data('scripts/desk-session-helper', 'scripts/desk-screenshot', 'scripts/desk-ctl',
+  'scripts/desk-report',
   install_dir: get_option('bindir'),
   install_mode: 'rwxr-xr-x',
 )

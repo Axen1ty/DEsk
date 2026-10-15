@@ -960,6 +960,34 @@ Reddit で「カレンダーを開くと落ちる」と報告があり、ユー�
 - **残り**：`paint_scene_buffer`（めくった角の下に見える、ほかの紙の影・枠・角を描き直す `curl_underlay`）も `buffer` から画素を読むので、GPU の画面では下の紙が抜けて机だけが見える。落ちはしない。別に直す。
 - 確かめたこと：ビルド 4 構成で警告 0、`meson test`、ASan の入れ子の二画面でポスト・カレンダー・メモ・引き出し・Control Panel。GPU の画面での確認は実機で。
 
+### 2.4.57 Fedora のインストーラ（v0.1.2、2026-10-12）
+
+Reddit で Fedora 44 の人から「何もかも APT か Pacman 向けで、Fedora では使えない。要るパッケージは全部 DNF のリポジトリにもあるのに」という声。
+
+- **wlroots 0.18**：Fedora 43・44・45（rawhide）とも、互換のパッケージ `wlroots0.18`（0.18.3、`wlroots0.18-devel` に `wlroots-0.18.pc`）を持つ（Fedora の `mdapi` で確かめた。本体の `wlroots` は 43 で 0.19、44 で 0.20）。インストーラは名前で決め打ちせず、`pkgconfig(wlroots-0.18)` を持つパッケージを rpm（入っているもの）と dnf（リポジトリ）に聞いて入れる。無い Fedora では Arch・Ubuntu と同じく 0.18.3 を公式のリリースから `/opt/desk-wlroots` にビルドする。
+- **`scripts/install_fedora.sh`**：`install_arch.sh` と同じ流れ・同じオプション。入っているかは `rpm -q`、リポジトリにあるかは名前をまとめて一度だけ `dnf repoquery --available` に root で聞く（dnf は起動に 1 秒以上かかり、利用者のホームに一覧の写しを作らないため）。`rpm -q --whatprovides` は該当なしでも「no package provides …」を標準出力に出すので、終了コードで見分ける。入れるのは `dnf install --setopt=install_weak_deps=False`：弱い依存を入れると、GNOME Tweaks が GNOME Shell を、その GNOME Shell が GDM を連れてきて、GDM がログイン画面として有効になった（試験環境で見つけた。KDE の Fedora の SDDM を乗っ取りかねない）。Debian・Ubuntu の `--no-install-recommends` と同じ扱い。その代わり、本体が「おすすめ」しかしない別パッケージは名前を出す（`ibus-setup`：Shell Settings の Input method の行が開くもの）。DEsk が頼るのに依存として入っていたものは `dnf mark user`（dnf 4 は `mark install`。`-y` が要る）。SELinux が有効なら DEsk のファイルに `restorecon`。
+- **Fedora に無いもの**：Klee One（メモ帳は Noto Serif CJK に）、Mugshot、poweralertd・batsignal（電池の知らせ）、package-update-indicator、nwg-look（GNOME Tweaks で）。Shell Settings の名前の表に Fedora の列（`PKG_FEDORA`。ID か ID_LIKE に fedora）を足し、Look は gnome-tweaks、Input method は ibus-setup、名前と写真は「パッケージが無い」。
+- **ほか**：`install_session.sh` が Fedora（と ID_LIKE に fedora と書く派生）を見分ける。`install-desktop.sh` に Fedora の名前（libayatana-appindicator-gtk3、glx-utils、qt*-qtbase-gui）。README（英・日）のインストールの節に一行、MOD の手引きに Fedora の列とインストーラ、リリースノートに v0.1.2 の変更と試した範囲。
+- **試した**：Fedora 44 の公式コンテナイメージ（`Fedora-Container-Base-Generic-44-1.7`、SHA-256 を fedoraproject.org の値と照合）を root なしのユーザー名前空間に展開した試験環境で、`sudo sh scripts/install_fedora.sh --yes --no-apps` を最初から（68 パッケージ、終了 0、GDM も GNOME Shell も入らない）、更新として（9 秒、足りない ibus-setup だけ）、`install_session.sh` から（Fedora を見分ける）、wlroots0.18 を消して dnf からも見えなくして（0.18.3 を 12 秒でビルド、`ldd` で `/opt/desk-wlroots` を使う）。入れた机は両方とも画面なし（pixman）で起動し、grim で撮った机と Shell Settings が正しい。Fedora の機械のログイン画面から入るのは未。
+
+### 2.4.58 Arch のインストーラが wlroots をビルドできなかった（2026-10-13、次の版で）
+
+Discord で報告（Axenity さんが原因と直し方を見つけ、bxd さんの機械で直った）。`install_arch.sh` は wlroots をビルドするフォルダを `deps` に入れておき、途中の「DEsk のために残すパッケージ」の一覧にも同じ `deps` を使っていたので、上書きされたフォルダの場所で wlroots のビルドが壊れた（AUR の `wlroots0.18` が無い、ふつうの Arch で起きる。Arch の試験環境には AUR のものを入れていたので通っていた）。一覧の方を `kept` に。Ubuntu・Fedora のインストーラは別の名前で、起きない。報告の回避策は、スクリプトを書き換えたので `SHA256SUMS` の照合に落ち、`DESK_SUMS_CHECKED=1` で照合を飛ばしていた。
+
+### 2.4.59 机の上の手紙が片付けられなかった（2026-10-15、次の版で）
+
+Discord で二人から「ポストで見た通知が消えず、机に残る」。取り出した手紙は、読んだあとも机の上の紙として残り、クリックすると丸めて捨てる作り（`post_land`・`post_paper_away`）だが、そのクリックが届いていなかった。手紙は窓の下に重なれるよう窓と同じ層（`layer_win`）にあり、ボタンの処理は先に `window_under`（その層の物の上か）で窓のクリックと決めるので、`!on_window` の中の手紙の判定に来なかった。窓かどうかを決める前に、ポインタの下の一番上の物が手紙のノードか（`post_paper_under`、`wlr_scene_node_at`）を聞く。窓が上に重なっていれば窓のもの。入れ子で、手紙を取り出してクリックすると捨てられ（ポストの数が 2→1）、窓が重なった所のクリックは窓に届いて手紙は残ることを確認。
+
+### 2.4.60 DEsk のあとで Plasma が真っ暗、開いたプログラムの紙が 45 秒残る（2026-10-15、次の版で）
+
+- **Plasma が真っ暗**（CachyOS で二人、毎回、再起動で直る）：DEsk のセッションは、D-Bus と systemd が起動するプログラムのために 18 個の変数（`WAYLAND_DISPLAY`・`DISPLAY`・`XDG_CURRENT_DESKTOP=DEsk`・`QT_QPA_PLATFORM` など、session.c の `ACTIVATION_VARS`）を利用者の systemd に渡すが、終わるときに取り消していたのは `DCONF_PROFILE` だけ（`desk_session_end`）。ポータル（`xdg-desktop-portal` とその wlr・gtk）も DEsk の設定と画面のまま動き続け、同じ利用者が systemd の動いているうちに Plasma に入ると、それを引き継いで止まる。`desk-session` は `exec desk` をやめて DEsk を子として動かし（ログイン画面からの TERM・HUP は DEsk に渡す）、DEsk が終わったら（落ちても）`desk-session-helper end` を走らせる：systemd の `XDG_CURRENT_DESKTOP` がまだ DEsk のとき（あとから別のデスクトップが整えていなければ）だけ、ポータルを止め、18 個の変数をすべて取り消す。C の `desk_session_end` は無くした。偽の `desk`・`systemctl` で、終わったとき・別のデスクトップが整えたあと・TERM の三通りを確かめた。
+- **開いたプログラムの紙が 45 秒残る**（btop++、KDE のシステム設定）：ALL APPS から開くと、その窓のための紙を先に置き、来た窓のアプリ ID をデスクトップファイルに突き合わせて紙に渡す（`base_claim`）。端末の中のプログラム（btop）の窓は端末のもの、KDE のシステム設定は名乗る名前が違うか Plasma の外では窓を出さないので、紙は `BASE_WAIT_S`（45 秒）待って捨てられていた。プログラムは二回 fork して間のプロセスで `setsid` して起動するので、そのプロセスの番号がプログラムのセッション番号：`desk_app_launch` がそれを返し（前は 0）、紙に覚える（`sid`）。窓が来たら、窓のプロセスの `getsid`（Wayland は `wl_client_get_credentials`、X は `_NET_WM_PID`）が同じ紙に、名前より先に渡す。毎秒の見回りで、置いて 5 秒（`BASE_GONE_S`）たってもそのセッションのプロセスが一つも無ければ（`/proc/*/stat` の 6 番目）、窓は来ないので紙を捨てる。入れ子で、端末の中の top・名前の合わない pluma の項目・すぐ終わる `true` の三つを確かめた。
+- **作業中の事故**：書き換えの Python の最後に `open(W,'w').write(open(W).read())` と書き、`src/wm.c` を空にした（`w` で開いた時点で空になり、そのあと読む）。直前の配布物（v0.1.2）の `wm.c` から戻し、そのあとの三つの変更（手紙、`desk_session_end` の呼び出し、紙のセッション番号）を当て直して、配布物との差分が意図した所だけなのを確かめた。
+
+### 2.4.61 desk-report（2026-10-15、次の版で）
+
+報告が増えて、毎回「session.log を貼って、GPU は？」と頼むのが手間なので、一つのコマンドに。`scripts/desk-report`（`bindir` に入る）は `~/desk-report.txt` に、DEsk の版と入っている場所、自分でビルドした wlroots、os-release、カーネル、セッションの種類、logind の有無、表示の装置とドライバー（`lspci -nnk` の表示の装置の行だけ、無ければ `/sys/class/drm`）、`/dev/dri`、`glxinfo -B`、NVIDIA の modeset、設定（機械とその人の `shell.conf`）、`coredumpctl` の一覧と最後のスタック、`session.log`（300 行）・`.old`（120 行）・`install.log`（80 行）を書く。書く前に、ホームを `~`、ユーザー名・マシン名（語として。ただし localhost や os-release に出る名前はそのまま：マシン名が debian のとき `ID=debian` まで伏せてしまった）・IPv4・MAC・メールアドレス・シリアルを伏せる。`--print` は画面に。この VM の本物のホームで、ユーザー名・IP が 0 件なのを確かめた。
+
 ## 3. 部屋の描画（レイトレーサ）
 
 ### 3.1 シーン

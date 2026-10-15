@@ -150,12 +150,16 @@ Each row opens a program that does the job. In `src/settings.c`:
 
 1. A `struct prog` list of the programs that can do it, preferred first
    (`P_DISPLAYS` and so on), and a `struct opens` saying which package brings
-   the first one on Debian/Ubuntu now, before Debian 13 / Ubuntu 26.04, and
-   on Arch (`O_DISPLAYS`). Name a Wayland global in `needs` if the program
-   cannot work without one.
+   the first one on Debian/Ubuntu now, before Debian 13 / Ubuntu 26.04, on
+   Arch and on Fedora (`O_DISPLAYS`; `""` where nothing packaged there does
+   it). Name a Wayland global in `needs` if the program cannot work without
+   one.
 2. An `S_ACTION` row in `SETTINGS` with its label and note.
 3. The package in `scripts/install_debian.sh`, `install_ubuntu.sh`,
-   `install_arch.sh` and `install-desktop.sh`, so the installers bring it.
+   `install_arch.sh`, `install_fedora.sh` and `install-desktop.sh`, so the
+   installers bring it. On Fedora, check that the program is not in a
+   package of its own that the main one only recommends (`ibus-setup`, say):
+   the Fedora installer leaves weak dependencies out.
 
 The row shows the program's name ("Displays (wdisplays)"), opens the first
 one installed, and says which package to install when none is.

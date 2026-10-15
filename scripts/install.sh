@@ -5,7 +5,7 @@
 # (the README lists it): it builds DEsk and installs it, and puts it on
 # the login screen, the way the installers do -- into /usr/local, from the
 # same build directory -- and installs nothing else. For a whole install
-# on Debian 13, Ubuntu 24.04 and 26.04, or Arch -- what DEsk needs, DEsk,
+# on Debian 13, Ubuntu 24.04 and 26.04, Arch or Fedora -- what DEsk needs, DEsk,
 # and the programs that go with it -- run scripts/install_session.sh
 # instead; scripts/install-desktop.sh brings those programs elsewhere.
 #
@@ -49,7 +49,7 @@ if ! grep -q "^project('desk'" "$root/meson.build" 2>/dev/null; then
 fi
 for tool in meson ninja pkg-config; do
 	command -v "$tool" >/dev/null 2>&1 || die "there is no $tool here. Install what the README lists,
-or run scripts/install_session.sh, which does that too on Debian, Ubuntu and Arch."
+or run scripts/install_session.sh, which does that too on Debian, Ubuntu, Arch and Fedora."
 done
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
@@ -98,7 +98,7 @@ nosetup() {
 	cat "$tmp/setup.log"
 	die "Meson could not set up $build. What it is missing is said above; the README
 lists what DEsk is built from, and scripts/install_session.sh installs it on Debian,
-Ubuntu and Arch."
+Ubuntu, Arch and Fedora."
 }
 # A directory an installer set up keeps where it found wlroots (one built
 # into /opt/desk-wlroots, say): only the prefix is changed.

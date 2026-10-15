@@ -17,4 +17,3 @@ bool desk_session_is_desktop(void);
 struct wl_event_loop;
 void desk_session_start(struct wl_event_loop *loop);
 /* At its end: what was for this session only taken back. */
-void desk_session_end(void);

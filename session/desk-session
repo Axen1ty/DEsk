@@ -221,11 +221,38 @@ fi
 # ~/.local/state/desk/session.log, the one before as session.log.old -- the
 # room being traced and on what, a program that would not start. Nested in
 # another desktop, or with DESK_LOG=- , it goes where it would have.
-if [ -z "${DESK_NESTED:-}" ] && [ "${DESK_LOG:-}" != "-" ]; then
+#
+# A session of its own runs DEsk as a child rather than in this shell's
+# place, so that once DEsk has gone -- logged out, or fallen -- what it told
+# the rest of the login is taken back (desk-session-helper end): the next
+# desktop the same user logs in to, with systemd still running, would
+# otherwise start its services with DEsk's display and portals (Plasma sat
+# at a black screen). What the login screen sends to end the session is
+# handed on to DEsk.
+if [ -n "${DESK_NESTED:-}" ]; then
+	exec desk "$@"
+fi
+log=/dev/stderr
+if [ "${DESK_LOG:-}" != "-" ]; then
 	logdir="${XDG_STATE_HOME:-${HOME:-/tmp}/.local/state}/desk"
 	if mkdir -p "$logdir" 2>/dev/null; then
 		[ -f "$logdir/session.log" ] && mv -f "$logdir/session.log" "$logdir/session.log.old" || true
-		exec desk "$@" > "$logdir/session.log" 2>&1
+		log="$logdir/session.log"
 	fi
 fi
-exec desk "$@"
+if [ "$log" = /dev/stderr ]; then
+	desk "$@" &
+else
+	desk "$@" > "$log" 2>&1 &
+fi
+pid=$!
+trap 'kill -TERM "$pid" 2>/dev/null || true' TERM HUP
+rc=0
+while :; do
+	rc=0
+	wait "$pid" || rc=$?
+	kill -0 "$pid" 2>/dev/null || break
+done
+trap - TERM HUP
+desk-session-helper end "$XDG_CURRENT_DESKTOP" >> "$log" 2>&1 || true
+exit "$rc"

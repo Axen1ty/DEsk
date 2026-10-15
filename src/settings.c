@@ -154,11 +154,11 @@ struct prog {
 };
 
 /* Which names packages go by here (os_read), as the package lists of Debian
- * 13, Ubuntu 24.04 and 26.04 and Arch have them: Debian's and Ubuntu's as
- * they are from Debian 13 and Ubuntu 26.04 on; as they were before those,
- * when nm-connection-editor came in network-manager-gnome and nwg-look was
- * not packaged; and Arch's. */
-enum { PKG_NOW, PKG_BEFORE, PKG_ARCH, PKG_KINDS };
+ * 13, Ubuntu 24.04 and 26.04, Arch and Fedora have them: Debian's and
+ * Ubuntu's as they are from Debian 13 and Ubuntu 26.04 on; as they were
+ * before those, when nm-connection-editor came in network-manager-gnome and
+ * nwg-look was not packaged; Arch's; and Fedora's. */
+enum { PKG_NOW, PKG_BEFORE, PKG_ARCH, PKG_FEDORA, PKG_KINDS };
 
 /* What an action opens: the programs that do it, in the order they are
  * preferred; a package that brings the first of them that is packaged, by
@@ -267,8 +267,10 @@ static const struct opens O_SOUND = { P_SOUND, { "pavucontrol" }, NULL };
 /* screens are arranged through the compositor, which has to offer it */
 static const struct opens O_DISPLAYS = { P_DISPLAYS, { "wdisplays" }, "zwlr_output_manager_v1" };
 static const struct opens O_PRINTERS = { P_PRINTERS, { "system-config-printer" }, NULL };
-/* before, there was no nwg-look: GNOME's Tweaks writes the same GSettings */
-static const struct opens O_LOOK = { P_LOOK, { "nwg-look", "gnome-tweaks" }, NULL };
+/* before, there was no nwg-look, and Fedora has none: GNOME's Tweaks writes
+ * the same GSettings */
+static const struct opens O_LOOK = { P_LOOK, { "nwg-look", "gnome-tweaks", NULL, "gnome-tweaks" },
+	NULL };
 static const struct opens O_DEFAULTS = { P_DEFAULTS, { "xfce4-settings" }, NULL };
 static const struct opens O_DISKS = { P_DISKS, { "gnome-disk-utility" }, NULL };
 static const struct opens O_INDEX = { P_INDEX, { NULL }, NULL };
@@ -276,9 +278,11 @@ static const struct opens O_INDEX = { P_INDEX, { NULL }, NULL };
  * only in the AUR, and GNOME's for them in its own repositories */
 static const struct opens O_COLOUR = { P_COLOUR, { "xfce4-settings" }, NULL };
 static const struct opens O_USAGE = { P_USAGE, { "qdirstat", "qdirstat", "baobab" }, NULL };
-static const struct opens O_INPUT = { P_INPUT, { "ibus" }, NULL };
+/* Fedora keeps IBus's setup apart from IBus */
+static const struct opens O_INPUT = { P_INPUT, { "ibus", NULL, NULL, "ibus-setup" }, NULL };
 static const struct opens O_TIME = { P_TIME, { "lxqt-admin" }, NULL };
-static const struct opens O_FACE = { P_FACE, { "mugshot" }, NULL };
+/* Fedora has no Mugshot */
+static const struct opens O_FACE = { P_FACE, { "mugshot", NULL, NULL, "" }, NULL };
 static const struct opens O_USERS = { P_USERS, { "lxqt-admin" }, NULL };
 static const struct opens O_KEYS = { P_KEYS, { "seahorse" }, NULL };
 static const struct opens O_SOFTWARE = { P_SOFTWARE, { "gnome-packagekit" }, NULL };
@@ -824,7 +828,8 @@ static bool os_value(const char *line, const char *key, char *out, size_t n)
 }
 
 /* Which names packages go by, as os-release f says: Arch's for Arch and
- * what is made from it; for Ubuntu and what is made from it, by the Ubuntu
+ * what is made from it, Fedora's for Fedora and what is made from it (which
+ * says so in ID_LIKE); for Ubuntu and what is made from it, by the Ubuntu
  * it is; for what else is made from Debian, by the Debian it says it is
  * made from; for Debian itself (and Raspberry Pi OS, numbered as Debian is),
  * by VERSION_ID, which its testing and unstable do not have; the names of now
@@ -842,6 +847,9 @@ static int pkg_kind(FILE *f)
 	}
 	if (strstr(id, "arch") || strstr(like, "arch")) {
 		return PKG_ARCH;
+	}
+	if (!strcmp(id, "fedora") || strstr(like, "fedora")) {
+		return PKG_FEDORA;
 	}
 	if (ubuntu[0]) {
 		return named_in(UBUNTU_BEFORE, ubuntu) ? PKG_BEFORE : PKG_NOW;

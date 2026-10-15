@@ -87,9 +87,9 @@ DEsk が知らないキーは記録に書かれ、ファイルにはそのまま
 
 各行は、その仕事をするプログラムを開きます。`src/settings.c` で：
 
-1. その仕事ができるプログラムの `struct prog` の一覧（好ましい順。`P_DISPLAYS` など）と、最初のプログラムを入れるパッケージを、今の Debian/Ubuntu、Debian 13 / Ubuntu 26.04 より前、Arch について言う `struct opens`（`O_DISPLAYS`）。そのプログラムが Wayland のグローバルなしで動かないなら `needs` にその名前を。
+1. その仕事ができるプログラムの `struct prog` の一覧（好ましい順。`P_DISPLAYS` など）と、最初のプログラムを入れるパッケージを、今の Debian/Ubuntu、Debian 13 / Ubuntu 26.04 より前、Arch、Fedora について言う `struct opens`（`O_DISPLAYS`。そこで何のパッケージもしないなら `""`）。そのプログラムが Wayland のグローバルなしで動かないなら `needs` にその名前を。
 2. `SETTINGS` にラベルと説明の付いた `S_ACTION` の行。
-3. インストーラが入れるように、`scripts/install_debian.sh`・`install_ubuntu.sh`・`install_arch.sh`・`install-desktop.sh` にパッケージを。
+3. インストーラが入れるように、`scripts/install_debian.sh`・`install_ubuntu.sh`・`install_arch.sh`・`install_fedora.sh`・`install-desktop.sh` にパッケージを。Fedora では、そのプログラムが本体とは別のパッケージに分かれていて、本体が「おすすめ」しかしていないことがあります（`ibus-setup` など）。Fedora のインストーラは弱い依存を入れないので、確かめてください。
 
 行にはプログラムの名前が添えられ（「ディスプレイ（wdisplays）」）、入っている最初のものを開き、どれも無ければ入れるべきパッケージを示します。
 

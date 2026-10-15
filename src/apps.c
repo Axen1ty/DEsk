@@ -1927,7 +1927,10 @@ void desk_close_from(int lowest)
 static pid_t launch_argv(char **argv, const char *workdir)
 {
 	/* Forked twice: the program is not our child, so nothing has to wait
-	 * for it and it leaves no zombie behind when it quits. */
+	 * for it and it leaves no zombie behind when it quits. The first child
+	 * makes a session of its own and the program is started in it, so the
+	 * session's number -- that child's pid -- is the program's, and stays
+	 * on whatever it starts: what desk_app_launch returns. */
 	pid_t pid = fork();
 	if (pid < 0) {
 		return -1;
@@ -1937,7 +1940,7 @@ static pid_t launch_argv(char **argv, const char *workdir)
 		while (waitpid(pid, &st, 0) < 0 && errno == EINTR) {
 			;
 		}
-		return WIFEXITED(st) && WEXITSTATUS(st) == 0 ? 0 : -1;
+		return WIFEXITED(st) && WEXITSTATUS(st) == 0 ? pid : -1;
 	}
 	setsid();
 	sigset_t set;
